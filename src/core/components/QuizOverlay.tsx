@@ -69,21 +69,36 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleInputChange = async (field: string, value: string) => {
+    // Phone formatting
+    if (field === 'phone') {
+      const cleaned = value.replace(/\D/g, '');
+      if (cleaned.length <= 10) {
+        const formatted = cleaned.length > 6 
+          ? `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`
+          : cleaned.length > 3
+          ? `(${cleaned.slice(0,3)}) ${cleaned.slice(3)}`
+          : cleaned;
+        value = formatted;
+      }
+    }
+    
     setQuizData(prev => ({
       ...prev,
       [field]: value
     }));
 
-    // Handle ZIP validation
+    // Handle ZIP validation separately
     if (field === 'zip' && value.length === 5) {
       setValidationState({ loading: true });
       const configStep = quizConfig.steps[0];
       const sessionData = getSessionData();
-      const result = await validateField(configStep, value, sessionData);
-      setValidationState({
-        loading: false,
-        valid: result.valid,
-        error: result.error
+      
+      validateField(configStep, value, sessionData).then(result => {
+        setValidationState({
+          loading: false,
+          valid: result.valid,
+          error: result.error
+        });
       });
     }
   };
