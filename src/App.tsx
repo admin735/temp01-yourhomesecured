@@ -14,6 +14,10 @@ import { QuizOverlay } from './core/components/QuizOverlay';
 function App() {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
 
+  useEffect(() => {
+    initializeSession();
+  }, []);
+
   const handleQuizStart = () => {
     setIsQuizOpen(true);
   };
