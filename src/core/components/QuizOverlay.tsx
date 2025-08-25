@@ -150,7 +150,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleSubmit = () => {
-    // Clean data structure without prototypes
     const finalData = {
       answers: {
         zip: quizData.zip,
@@ -174,15 +173,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       utm_params: JSON.parse(sessionStorage.getItem('utm_params') || '{}')
     };
     
-    console.log('Quiz submitted:', JSON.parse(JSON.stringify(finalData)));
+    // Fire and forget - don't wait for response
+    try {
+      const webhookUrl = import.meta.env.VITE_LEAD_WEBHOOK || 'https://webhook.site/unique-test-id';
+      
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalData)
+      }).then(response => {
+        // Log for debugging only
+        if (import.meta.env.VITE_DEBUG_MODE === 'true') {
+          console.log('Webhook status:', response.status);
+        }
+      }).catch(error => {
+        // Log errors only in debug mode
+        if (import.meta.env.VITE_DEBUG_MODE === 'true') {
+          console.error('Webhook error:', error);
+        }
+      });
+    } catch (error) {
+      // Silent fail - user doesn't need to know
+    }
     
-    // TODO: Send to webhook
-    // fetch(quizConfig.submission.webhook, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(finalData)
-    // });
-    
+    // Always show thank you immediately
     setShowThankYou(true);
   };
 
