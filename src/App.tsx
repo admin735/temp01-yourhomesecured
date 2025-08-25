@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { initializeSession } from './core/utils/session';
 import { Hero } from './core/components/Hero';
 import { MovingBanner } from './core/components/MovingBanner';
 import { ValuePropositions } from './core/components/ValuePropositions';
