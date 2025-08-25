@@ -135,6 +135,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleSubmit = () => {
+    // Clean data structure without prototypes
     const finalData = {
       answers: {
         zip: quizData.zip,
@@ -149,11 +150,24 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         email: quizData.email,
         phone: quizData.phone
       },
-      utm: JSON.parse(sessionStorage.getItem('utm_params') || '{}'),
-      session: getSessionData()
+      session: {
+        landing_page: window.location.pathname,
+        referrer: document.referrer || 'direct',
+        session_id: sessionStorage.getItem('session_id') || '',
+        timestamp: new Date().toISOString()
+      },
+      utm_params: JSON.parse(sessionStorage.getItem('utm_params') || '{}')
     };
     
-    console.log('Quiz submitted:', finalData);
+    console.log('Quiz submitted:', JSON.parse(JSON.stringify(finalData)));
+    
+    // TODO: Send to webhook
+    // fetch(quizConfig.submission.webhook, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(finalData)
+    // });
+    
     setShowThankYou(true);
   };
 
