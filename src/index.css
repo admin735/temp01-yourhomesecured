@@ -90,3 +90,39 @@ html {
 }
 
 /* Fix cursor on radio labels */
+input[type="radio"] {
+  cursor: pointer;
+}
+
+label:has(input[type="radio"]) {
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Prevent text cursor on non-input elements */
+.bg-white.rounded-2xl,
+.bg-white.rounded-2xl * {
+  user-select: none;
+  cursor: default;
+}
+
+/* Re-enable for actual input fields */
+.bg-white.rounded-2xl input[type="text"],
+.bg-white.rounded-2xl input[type="email"],
+.bg-white.rounded-2xl input[type="tel"],
+.bg-white.rounded-2xl input[type="number"],
+.bg-white.rounded-2xl textarea {
+  user-select: text;
+  cursor: text;
+}
+
+/* Clickable elements should have pointer */
+.bg-white.rounded-2xl button,
+.bg-white.rounded-2xl label {
+  cursor: pointer;
+}
+
+/* Remove focus outline on non-interactive elements */
+div:focus {
+  outline: none;
+}
