@@ -88,3 +88,17 @@ html {
     background: #1a365d !important;
   }
 }
+
+/* Fix cursor on radio labels */
+input[type="radio"] {
+  cursor: pointer;
+}
+
+label:has(input[type="radio"]) {
+  user-select: none;
+}
+
+/* Remove focus outline on non-interactive elements */
+div:focus {
+  outline: none;
+}
