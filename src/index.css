@@ -90,12 +90,20 @@ html {
 }
 
 /* Fix cursor on radio labels */
+/* Fix cursor on radio buttons only */
 input[type="radio"] {
   cursor: pointer;
 }
 
+/* Make labels with radio buttons non-selectable but keep default cursor */
 label:has(input[type="radio"]) {
   user-select: none;
+  cursor: default;
+}
+
+/* Only show pointer cursor when hovering over the actual radio input */
+label:has(input[type="radio"]):hover input[type="radio"] {
+  cursor: pointer;
 }
 
 /* Remove focus outline on non-interactive elements */
