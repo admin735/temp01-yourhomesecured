@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { QuizData } from '../types/quiz.types';
-
-// Add this interface since the old QuizStep is different
-interface QuizStep {
-  id: number;
-  title: string;
-  helper?: string;
-  type: 'radio' | 'input' | 'contact';
-}
+import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { quizConfig } from '../../config/quiz.config';
+import { validateField } from '../utils/validation';
+import { getSessionData } from '../utils/session';
 
 interface QuizOverlayProps {
   isOpen: boolean;
@@ -17,101 +11,119 @@ interface QuizOverlayProps {
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [quizData, setQuizData] = useState<QuizData>({
-    homeStatus: '',
-    installPreference: '',
-    zipCode: '',
-    urgency: '',
-    existingSystem: '',
-    firstName: '',
-    lastName: '',
+  const [showThankYou, setShowThankYou] = useState(false);
+  const [isLoadingStep, setIsLoadingStep] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [validationState, setValidationState] = useState<any>({});
+  
+  // Store answers using config IDs
+  const [quizData, setQuizData] = useState({
+    zip: '',
+    home_status: '',
+    install_pref: '',
+    intent_timing: '',
+    existing_system: '',
+    first_name: '',
+    last_name: '',
     phone: '',
     email: ''
   });
-  const [showThankYou, setShowThankYou] = useState(false);
 
-  const steps: QuizStep[] = [
+  // Build steps from config
+  const steps = [
+    ...quizConfig.steps.map(step => ({
+      id: step.id,
+      title: step.question,
+      helper: step.helper,
+      type: step.type === 'button-group' ? 'radio' : step.type,
+      options: step.options,
+      placeholder: step.placeholder
+    })),
     {
-      id: 1,
-      title: 'Choose your property type:',
-      helper: 'Helps tailor pro vs. renter-friendly options.',
-      type: 'radio'
-    },
-    {
-      id: 2,
-      title: 'Choose your preferred installation method:',
-      helper: 'We match you with the right setup.',
-      type: 'radio'
-    },
-    {
-      id: 3,
-      title: 'What is your ZIP code?',
-      helper: "We'll check local availability.",
-      type: 'input'
-    },
-    {
-      id: 4,
-      title: 'When do you want this set up?',
-      helper: 'This helps us prioritize your options.',
-      type: 'radio'
-    },
-    {
-      id: 5,
-      title: 'Do you already have a security system?',
-      helper: "We'll tailor takeover or new-system options.",
-      type: 'radio'
-    },
-    {
-      id: 6,
+      id: 'contact',
       title: 'Please enter your contact details:',
       type: 'contact'
     }
   ];
 
+  // After qualifying questions, before contact
+  const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
+
   const getOptions = (stepIndex: number) => {
-    switch (stepIndex) {
-      case 0:
-        return ['Homeowner', 'Rental'];
-      case 1:
-        return ['Professional Install', 'Self Setup', 'Not sure'];
-      case 3:
-        return ['ASAP (48-72 hrs)', 'This week', '2-4 weeks', 'Just researching'];
-      case 4:
-        return ['No', 'DIY (e.g., Ring, SimpliSafe)', 'Pro-monitored (ADT, Vivint, etc.)'];
-      default:
-        return [];
+    if (stepIndex < quizConfig.steps.length) {
+      return quizConfig.steps[stepIndex].options?.map(opt => opt.label) || [];
     }
+    return [];
   };
 
   const handleOptionSelect = (value: string) => {
-    const stepKeys = ['homeStatus', 'installPreference', 'zipCode', 'urgency', 'existingSystem'];
-    setQuizData(prev => ({
-      ...prev,
-      [stepKeys[currentStep]]: value
-    }));
+    const configStep = quizConfig.steps[currentStep];
+    if (configStep) {
+      const selectedOption = configStep.options?.find(opt => opt.label === value);
+      setQuizData(prev => ({
+        ...prev,
+        [configStep.id]: selectedOption?.value || value
+      }));
+    }
   };
 
-  const handleInputChange = (field: keyof QuizData, value: string) => {
+  const handleInputChange = async (field: string, value: string) => {
     setQuizData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // Handle ZIP validation
+    if (field === 'zip' && value.length === 5) {
+      setValidationState({ loading: true });
+      const configStep = quizConfig.steps[0];
+      const sessionData = getSessionData();
+      const result = await validateField(configStep, value, sessionData);
+      setValidationState({
+        loading: false,
+        valid: result.valid,
+        error: result.error
+      });
+    }
   };
 
   const canProceed = () => {
-    const stepKeys = ['homeStatus', 'installPreference', 'zipCode', 'urgency', 'existingSystem'];
-    if (currentStep < 5) {
-      return quizData[stepKeys[currentStep] as keyof QuizData] !== '';
+    if (currentStep === 0) {
+      // ZIP step - must be valid
+      return validationState.valid === true;
     }
-    // For contact step, check all required fields
-    return quizData.firstName && quizData.lastName && quizData.phone && quizData.email;
+    
+    if (currentStep < quizConfig.steps.length) {
+      const configStep = quizConfig.steps[currentStep];
+      return quizData[configStep.id as keyof typeof quizData] !== '';
+    }
+    
+    // Contact step
+    return quizData.first_name && quizData.last_name && quizData.phone && quizData.email;
   };
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+  const runLoadingAnimation = async () => {
+    setIsLoadingStep(true);
+    const stages = quizConfig.loadingStep.stages;
+    
+    for (let stage of stages) {
+      setLoadingProgress(stage.progress);
+      setLoadingMessage(stage.message);
+      await new Promise(resolve => setTimeout(resolve, 750));
+    }
+    
+    setIsLoadingStep(false);
+    setCurrentStep(currentStep + 1);
+  };
+
+  const handleNext = async () => {
+    if (currentStep === quizConfig.steps.length - 1) {
+      // After last qualifying question, show loading
+      await runLoadingAnimation();
+    } else if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit form
       handleSubmit();
     }
   };
@@ -123,19 +135,56 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleSubmit = () => {
-    // Here you would typically send data to your backend
-    console.log('Quiz submitted:', quizData);
+    const finalData = {
+      answers: {
+        zip: quizData.zip,
+        home_status: quizData.home_status,
+        install_pref: quizData.install_pref,
+        intent_timing: quizData.intent_timing,
+        existing_system: quizData.existing_system
+      },
+      lead: {
+        first_name: quizData.first_name,
+        last_name: quizData.last_name,
+        email: quizData.email,
+        phone: quizData.phone
+      },
+      utm: JSON.parse(sessionStorage.getItem('utm_params') || '{}'),
+      session: getSessionData()
+    };
+    
+    console.log('Quiz submitted:', finalData);
     setShowThankYou(true);
   };
 
   const getThankYouMessage = () => {
-    if (quizData.homeStatus === 'Homeowner' && quizData.installPreference === 'Professional Install') {
+    if (quizData.home_status === 'owner' && quizData.install_pref === 'pro') {
       return "A specialist serving your area can review monitored options with you shortly—install as soon as tomorrow in many areas.";
     }
     return "We'll start with renter-friendly, no-drill options you can set up in minutes.";
   };
 
   if (!isOpen) return null;
+
+  // Show loading screen
+  if (isLoadingStep) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl w-full max-w-2xl p-8 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">
+            {loadingMessage}
+          </h3>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
@@ -182,7 +231,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           {showThankYou ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <div className="text-green-600 text-2xl">✓</div>
+                <CheckCircle className="w-10 h-10 text-green-600" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Your Security Match is Ready!
@@ -212,8 +261,36 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                 </p>
               )}
 
-              {/* Step Content */}
-              {steps[currentStep].type === 'radio' && (
+              {/* ZIP Input (Step 0) */}
+              {currentStep === 0 && (
+                <div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={steps[0].placeholder || "Enter ZIP code"}
+                      value={quizData.zip}
+                      onChange={(e) => handleInputChange('zip', e.target.value)}
+                      className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                      maxLength={5}
+                    />
+                    {validationState.loading && (
+                      <Loader2 className="absolute right-4 top-5 w-5 h-5 animate-spin text-blue-500" />
+                    )}
+                    {validationState.valid === true && (
+                      <CheckCircle className="absolute right-4 top-5 w-5 h-5 text-green-500" />
+                    )}
+                    {validationState.valid === false && (
+                      <XCircle className="absolute right-4 top-5 w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  {validationState.error && (
+                    <p className="mt-2 text-sm text-red-600">{validationState.error}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Radio Options */}
+              {steps[currentStep].type === 'radio' && currentStep > 0 && (
                 <div className="space-y-3">
                   {getOptions(currentStep).map((option, index) => (
                     <label
@@ -233,34 +310,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                 </div>
               )}
 
-              {steps[currentStep].type === 'input' && (
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Enter ZIP code"
-                    value={quizData.zipCode}
-                    onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                    maxLength={5}
-                  />
-                </div>
-              )}
-
+              {/* Contact Form */}
               {steps[currentStep].type === 'contact' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
                       placeholder="First Name"
-                      value={quizData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      value={quizData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
                       className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                       type="text"
                       placeholder="Last Name"
-                      value={quizData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      value={quizData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
                       className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
@@ -280,11 +345,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                   />
                   
                   <div className="bg-gray-50 p-4 rounded-lg text-xs text-gray-600 leading-relaxed">
-                    <p>
-                      By submitting your information, you agree to be contacted by YourHomeSecured 
-                      and/or our security partners regarding home protection solutions via phone, 
-                      text, or email. Consent is not a condition of purchase. Message and data rates may apply.
-                    </p>
+                    <p>{quizConfig.submission.consent.text}</p>
                   </div>
                 </div>
               )}
