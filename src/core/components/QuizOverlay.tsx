@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { QuizData, QuizStep } from '../types/quiz';
+import type { QuizData } from '../types/quiz.types';
+
+// Add this interface since the old QuizStep is different
+interface QuizStep {
+  id: number;
+  title: string;
+  helper?: string;
+  type: 'radio' | 'input' | 'contact';
+}
 
 interface QuizOverlayProps {
   isOpen: boolean;
