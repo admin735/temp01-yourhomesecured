@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Hero } from './components/Hero';
-import { MovingBanner } from './components/MovingBanner';
-import { ValuePropositions } from './components/ValuePropositions';
-import { HowItWorks } from './components/HowItWorks';
-import { TrustTransparency } from './components/TrustTransparency';
-import { FAQ } from './components/FAQ';
-import { FinalCTA } from './components/FinalCTA';
-import { Footer } from './components/Footer';
-import { QuizOverlay } from './components/QuizOverlay';
+import { Hero } from './core/components/Hero';
+import { MovingBanner } from './core/components/MovingBanner';
+import { ValuePropositions } from './core/components/ValuePropositions';
+import { HowItWorks } from './core/components/HowItWorks';
+import { TrustTransparency } from './core/components/TrustTransparency';
+import { FAQ } from './core/components/FAQ';
+import { FinalCTA } from './core/components/FinalCTA';
+import { Footer } from './core/components/Footer';
+import { QuizOverlay } from './core/components/QuizOverlay';
 
 function App() {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
