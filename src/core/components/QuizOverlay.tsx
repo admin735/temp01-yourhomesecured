@@ -4,6 +4,7 @@ import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
 import { getSessionData } from '../utils/session';
 import { config } from '../../config/environment.config';
+import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
 interface QuizOverlayProps {
@@ -125,6 +126,46 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           error: 'Validation failed'
         });
       }
+    }
+  };
+
+  const handleEmailValidation = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    // Set loading immediately
+    setEmailValidationState({ loading: true, valid: null, error: null });
+    
+    // Create email validation config
+    const emailConfig = {
+      id: 'email',
+      validation: {
+        apiEndpoint: config.api.emailValidation,
+        mockDelay: 1500,
+        message: 'Please enter a valid email address'
+      }
+    };
+    
+    const sessionData = getSessionData();
+    
+    try {
+      // Execute validation
+      const result = await validateField(emailConfig, email, sessionData);
+      setEmailValidationState({
+        loading: false,
+        valid: result.valid,
+        error: result.error
+      });
+      
+      // Store enrichment data if valid
+      if (result.valid && result.data) {
+        sessionStorage.setItem('enrichment_email', JSON.stringify(result.data));
+      }
+    } catch (error) {
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: 'Validation failed'
+      });
     }
   };
 
