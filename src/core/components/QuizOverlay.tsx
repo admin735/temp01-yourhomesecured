@@ -4,7 +4,6 @@ import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
 import { getSessionData } from '../utils/session';
 import { config } from '../../config/environment.config';
-import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
 interface QuizOverlayProps {
