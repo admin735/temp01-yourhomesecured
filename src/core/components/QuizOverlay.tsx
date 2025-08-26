@@ -18,6 +18,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [validationState, setValidationState] = useState<any>({});
   const [tcpaConsent, setTcpaConsent] = useState(false);
   const [consentTimestamp, setConsentTimestamp] = useState('');
+  const [showExitModal, setShowExitModal] = useState(false);
   
   // Store answers using config IDs
   const [quizData, setQuizData] = useState({
@@ -257,7 +258,13 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           </div>
           {!showThankYou && (
             <button
-              onClick={onClose}
+              onClick={() => {
+                if (currentStep > 0 && !showThankYou) {
+                  setShowExitModal(true);
+                } else {
+                  onClose();
+                }
+              }}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
@@ -439,6 +446,35 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           </div>
         )}
       </div>
+
+      {/* Exit Confirmation Modal */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 max-w-md shadow-xl">
+            <h3 className="text-lg font-bold mb-2">Wait! You're almost done</h3>
+            <p className="text-gray-600 mb-4">
+              You're just {steps.length - currentStep} questions away from your personalized security recommendations.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowExitModal(false)}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-semibold"
+              >
+                Continue Quiz
+              </button>
+              <button 
+                onClick={() => {
+                  setShowExitModal(false);
+                  onClose();
+                }}
+                className="flex-1 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50"
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
