@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ErrorBoundary } from './core/components/ErrorBoundary';
 import { initializeSession } from './core/utils/session';
 import { Hero } from './core/components/Hero';
 import { MovingBanner } from './core/components/MovingBanner';
@@ -51,14 +52,16 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/tcpa-disclaimer" element={<TCPADisclaimer />} />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/tcpa-disclaimer" element={<TCPADisclaimer />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

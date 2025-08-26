@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'luc
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
 import { getSessionData } from '../utils/session';
+import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
 interface QuizOverlayProps {
   isOpen: boolean;
@@ -153,6 +154,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleSubmit = () => {
+    const submitWithErrorHandling = withErrorBoundary(() => {
     const finalData = {
       answers: {
         zip: quizData.zip,
@@ -196,17 +198,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           console.log('Webhook status:', response.status);
         }
       }).catch(error => {
+        reportError(error, { context: 'webhook_submission', data: finalData });
         // Log errors only in debug mode
         if (import.meta.env.VITE_DEBUG_MODE === 'true') {
           console.error('Webhook error:', error);
         }
       });
     } catch (error) {
+      reportError(error as Error, { context: 'webhook_submission_sync', data: finalData });
       // Silent fail - user doesn't need to know
     }
     
     // Always show thank you immediately
     setShowThankYou(true);
+    });
+    
+    submitWithErrorHandling();
   };
 
   const getThankYouMessage = () => {
