@@ -16,6 +16,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [validationState, setValidationState] = useState<any>({});
+  const [tcpaConsent, setTcpaConsent] = useState(false);
+  const [consentTimestamp, setConsentTimestamp] = useState('');
   
   // Store answers using config IDs
   const [quizData, setQuizData] = useState({
@@ -105,7 +107,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   const canProceed = () => {
     if (currentStep === 0) {
-      // ZIP step - must be valid
       return validationState.valid === true;
     }
     
@@ -114,8 +115,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return quizData[configStep.id as keyof typeof quizData] !== '';
     }
     
-    // Contact step
-    return quizData.first_name && quizData.last_name && quizData.phone && quizData.email;
+    // Contact step - now requires consent
+    return quizData.first_name && quizData.last_name && 
+           quizData.phone && quizData.email && tcpaConsent;
   };
 
   const runLoadingAnimation = async () => {
@@ -163,6 +165,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         last_name: quizData.last_name,
         email: quizData.email,
         phone: quizData.phone
+      },
+      consent: {
+        tcpa_agreed: tcpaConsent,
+        tcpa_timestamp: consentTimestamp,
+        tcpa_text: quizConfig.submission.consent.text,
+        tcpa_version: '2025_v1'
       },
       session: {
         landing_page: window.location.pathname,
@@ -387,9 +395,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   
-                  <div className="bg-gray-50 p-4 rounded-lg text-xs text-gray-600 leading-relaxed">
-                    <p>{quizConfig.submission.consent.text}</p>
-                  </div>
+                  <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
+                    <input
+                      type="checkbox"
+                      checked={tcpaConsent}
+                      onChange={(e) => {
+                        setTcpaConsent(e.target.checked);
+                        if (e.target.checked) {
+                          setConsentTimestamp(new Date().toISOString());
+                        }
+                      }}
+                      className="mt-1 w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-xs text-gray-600 leading-relaxed">
+                      {quizConfig.submission.consent.text}
+                    </span>
+                  </label>
                 </div>
               )}
             </>
