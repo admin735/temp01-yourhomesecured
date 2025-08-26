@@ -91,19 +91,38 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       [field]: value
     }));
 
-    // Handle ZIP validation separately
+    // Handle ZIP validation when 5 digits entered
     if (field === 'zip' && value.length === 5) {
-      setValidationState({ loading: true });
+      // Set loading immediately
+      setValidationState({ loading: true, valid: null, error: null });
+      
+      // Get the config and session data
       const configStep = quizConfig.steps[0];
       const sessionData = getSessionData();
       
-      validateField(configStep, value, sessionData).then(result => {
+      // Execute validation and handle response
+      try {
+        const result = await validateField(configStep, value, sessionData);
+        
+        // Update state when response arrives
         setValidationState({
           loading: false,
           valid: result.valid,
           error: result.error
         });
-      });
+        
+        // Store enrichment data if valid
+        if (result.valid && result.data) {
+          sessionStorage.setItem('enrichment_zip', JSON.stringify(result.data));
+        }
+      } catch (error) {
+        // Handle any unexpected errors
+        setValidationState({
+          loading: false,
+          valid: false,
+          error: 'Validation failed'
+        });
+      }
     }
   };
 
