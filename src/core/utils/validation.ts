@@ -1,43 +1,8 @@
-import { config } from '../../config/environment.config';
-import { reportError } from './errorHandler';
-
 export const sleep = (ms: number): Promise<void> => 
   new Promise(resolve => setTimeout(resolve, ms));
 
-// Blacklisted ZIP patterns
-const INVALID_ZIP_PATTERNS = [
-  '00000', '11111', '22222', '33333', '44444', 
-  '55555', '66666', '77777', '88888',
-  '12345', '54321', '98765', '56789',
-  '12121', '98989', '10101'
-];
-
-// Test ZIPs allowed in development
-const TEST_ZIP_WHITELIST = ['99999'];
-
-export const isBlacklistedZIP = (zip: string): boolean => {
-  const isDev = import.meta.env.VITE_ENV === 'development';
-  
-  // Allow test ZIPs in development
-  if (isDev && TEST_ZIP_WHITELIST.includes(zip)) {
-    return false;
-  }
-  
-  // Check blacklist
-  if (INVALID_ZIP_PATTERNS.includes(zip)) {
-    return true;
-  }
-  
-  // Must be 5 digits
-  if (!/^\d{5}$/.test(zip)) {
-    return true;
-  }
-  
-  return false;
-};
-
 export const validateZIP = (zip: string): boolean => {
-  return /^\d{5}$/.test(zip) && !isBlacklistedZIP(zip);
+  return /^\d{5}$/.test(zip);
 };
 
 export const validateEmail = (email: string): boolean => {
@@ -57,72 +22,30 @@ export const formatPhone = (phone: string): string => {
   return phone;
 };
 
-// Main validation function with error reporting
 export const validateField = async (step: any, value: any, sessionData: any) => {
-  // Quick fail for blacklisted ZIPs
-  if (step.id === 'zip' && isBlacklistedZIP(value)) {
-    return { 
-      valid: false, 
-      error: 'Please enter a valid ZIP code',
-      data: null 
-    };
-  }
-
   if (step.validation?.apiEndpoint) {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      
       const response = await fetch(step.validation.apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           [step.id]: value,
           ...sessionData 
-        }),
-        signal: controller.signal
+        })
       });
       
-      clearTimeout(timeout);
       const data = await response.json();
       
-      if (data.status === 'valid') {
-        return { 
-          valid: true, 
-          error: null,
-          data: data.data // enrichment data
-        };
-      } else if (data.status === 'invalid') {
-        return { 
-          valid: false, 
-          error: data.message || 'Validation failed',
-          data: null
-        };
+      if (data.response === 'success') {
+        return { valid: true, data: data.additionalData };
       } else {
-        // Backend error but allow continuation
-        return {
-          valid: true,
-          error: null,
-          data: null
-        };
+        return { valid: false, error: data.message || 'Validation failed' };
       }
-    } catch (error: any) {
-      // Report to error webhook
-      await reportError(new Error(`${step.id}_validation_failed: ${error.message || 'Network error'}`), {
-        field: step.id,
-        value: value.substring(0, 2) + '***', // Partial value for privacy
-        endpoint: step.validation.apiEndpoint
-      });
-      
-      // Allow user to continue
-      return { 
-        valid: true,
-        error: null,
-        data: null
-      };
+    } catch (error) {
+      await sleep(step.validation?.mockDelay || 1500);
+      return validateLocally(step, value);
     }
   } else {
-    // Frontend validation only
     await sleep(step.validation?.mockDelay || 1500);
     return validateLocally(step, value);
   }
@@ -133,23 +56,15 @@ const validateLocally = (step: any, value: any) => {
     const valid = validateZIP(value);
     return {
       valid,
-      error: valid ? null : 'Please enter a valid ZIP code'
+      error: valid ? null : step.validation?.message
     };
   }
   
-  if (step.id === 'email') {
-    const valid = validateEmail(value);
+  if (step.validation?.pattern) {
+    const valid = step.validation.pattern.test(value);
     return {
       valid,
-      error: valid ? null : 'Please enter a valid email address'
-    };
-  }
-  
-  if (step.id === 'phone') {
-    const valid = validatePhone(value);
-    return {
-      valid,
-      error: valid ? null : 'Please enter a valid 10-digit phone number'
+      error: valid ? null : step.validation.message
     };
   }
   
