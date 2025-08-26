@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'luc
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
 import { getSessionData } from '../utils/session';
+import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
 interface QuizOverlayProps {
@@ -19,6 +20,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [validationState, setValidationState] = useState<any>({});
   const [tcpaConsent, setTcpaConsent] = useState(false);
   const [consentTimestamp, setConsentTimestamp] = useState('');
+  const [emailValidationState, setEmailValidationState] = useState<any>({});
   const [showExitModal, setShowExitModal] = useState(false);
   
   // Store answers using config IDs
@@ -233,6 +235,46 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     });
     
     submitWithErrorHandling();
+  const handleEmailValidation = async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    // Set loading immediately
+    setEmailValidationState({ loading: true, valid: null, error: null });
+    
+    // Create email validation config
+    const emailConfig = {
+      id: 'email',
+      validation: {
+        apiEndpoint: config.api.emailValidation,
+        mockDelay: 1500,
+        message: 'Please enter a valid email address'
+      }
+    };
+    
+    const sessionData = getSessionData();
+    
+    try {
+      // Execute validation
+      const result = await validateField(emailConfig, email, sessionData);
+      setEmailValidationState({
+        loading: false,
+        valid: result.valid,
+        error: result.error
+      });
+      
+      // Store enrichment data if valid
+      if (result.valid && result.data) {
+        sessionStorage.setItem('enrichment_email', JSON.stringify(result.data));
+      }
+    } catch (error) {
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: 'Validation failed'
+      });
+    }
+  };
+
   };
 
   const getThankYouMessage = () => {
@@ -421,13 +463,28 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    value={quizData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      value={quizData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={(e) => handleEmailValidation(e.target.value)}
+                      className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {emailValidationState.loading && (
+                      <Loader2 className="absolute right-4 top-4 w-5 h-5 animate-spin text-blue-500" />
+                    )}
+                    {emailValidationState.valid === true && (
+                      <CheckCircle className="absolute right-4 top-4 w-5 h-5 text-green-500" />
+                    )}
+                    {emailValidationState.valid === false && (
+                      <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                  {emailValidationState.error && (
+                    <p className="mt-1 text-sm text-red-600">{emailValidationState.error}</p>
+                  )}
                   
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
                     <input
