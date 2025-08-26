@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { QuizOverlay } from '../core/components/QuizOverlay';
+import { Footer } from '../core/components/Footer';
 
 export const PrivacyPolicy: React.FC = () => {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -190,6 +191,7 @@ export const PrivacyPolicy: React.FC = () => {
       </main>
 
       <QuizOverlay isOpen={isQuizOpen} onClose={handleQuizClose} />
+      <Footer />
     </div>
   );
 };
