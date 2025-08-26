@@ -193,7 +193,7 @@ export const TCPADisclaimer: React.FC = () => {
                   Phone: 1-800-HOME-SEC<br />
                   Mail: 123 Security Lane, Safe City, SC 12345<br />
                   <br />
-                  <strong>FCC Complaints:</strong> You may also file complaints with the FCC at <a href="https://consumercomplaints.fcc.gov" className=\"text-blue-600 hover:underline">consumercomplaints.fcc.gov</a>
+                  <strong>FCC Complaints:</strong> You may also file complaints with the FCC at <a href="https://consumercomplaints.fcc.gov" className="text-blue-600 hover:underline">consumercomplaints.fcc.gov</a>
                 </p>
               </div>
             </section>
