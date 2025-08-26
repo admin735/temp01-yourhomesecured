@@ -6,13 +6,11 @@ export const Footer: React.FC = () => {
       <div className="max-w-6xl mx-auto px-6">
         {/* Links */}
         <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm">
-          <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+          <a href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</a>
           <span className="text-gray-600">|</span>
-          <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          <a href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</a>
           <span className="text-gray-600">|</span>
-          <a href="#" className="hover:text-white transition-colors">TCPA Disclaimer</a>
-          <span className="text-gray-600">|</span>
-          <a href="#" className="hover:text-white transition-colors">Do Not Sell My Info</a>
+          <a href="/tcpa-disclaimer" className="hover:text-white transition-colors">TCPA Disclaimer</a>
         </div>
         
         {/* Compliance Text */}
