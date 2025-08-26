@@ -350,8 +350,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     >
                       <input
                         type="radio"
-                        name={`step-${currentStep}`}
+                       name={`step-${currentStep}-${steps[currentStep].id}`}
                         value={option}
+                       checked={quizData[quizConfig.steps[currentStep].id as keyof typeof quizData] === quizConfig.steps[currentStep].options?.find(opt => opt.label === option)?.value}
                         onChange={(e) => handleOptionSelect(e.target.value)}
                         className="w-4 h-4 text-blue-600 mr-3"
                       />
