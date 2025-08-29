@@ -12,9 +12,9 @@ import { FAQ } from './core/components/FAQ';
 import { FinalCTA } from './core/components/FinalCTA';
 import { Footer } from './core/components/Footer';
 import { QuizOverlay } from './core/components/QuizOverlay';
-import { PrivacyPolicy } from './pages/PrivacyPolicy';
-import { TermsOfService } from './pages/TermsOfService';
-import { TCPADisclaimer } from './pages/TCPADisclaimer';
+import { PrivacyPolicy } from './core/pages/PrivacyPolicy';
+import { TermsOfService } from './core/pages/TermsOfService';
+import { TCPADisclaimer } from './core/pages/TCPADisclaimer';
 
 const HomePage: React.FC = () => {
   const [isQuizOpen, setIsQuizOpen] = useState(false);

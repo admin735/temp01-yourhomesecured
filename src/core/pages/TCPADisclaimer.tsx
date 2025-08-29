@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Phone } from 'lucide-react';
-import { QuizOverlay } from '../core/components/QuizOverlay';
-import { Footer } from '../core/components/Footer';
+import { QuizOverlay } from '../components/QuizOverlay';
+import { Footer } from '../components/Footer';
 
 export const TCPADisclaimer: React.FC = () => {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
