@@ -187,6 +187,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const handleEmailValidation = async (email: string) => {
     if (!email || !email.includes('@')) return;
     
+    // Skip if value hasn't changed since last validation
+    if (email === lastValidatedValues.email) {
+      console.log('Email unchanged, skipping validation');
+      return;
+    }
+    
     // Set loading immediately
     setEmailValidationState({ loading: true, valid: null, error: null });
     
@@ -205,6 +211,13 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       // Execute validation
       const result = await validateField(emailConfig, email, sessionData);
+      
+      // Track this as the last validated value
+      setLastValidatedValues(prev => ({
+        ...prev,
+        email: email
+      }));
+      
       setEmailValidationState({
         loading: false,
         valid: result.valid,
