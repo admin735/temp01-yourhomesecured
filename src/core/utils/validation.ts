@@ -1,5 +1,6 @@
 import { config } from '../../config/environment.config';
 import { reportError } from './errorHandler';
+import { getSessionData, storeValidation } from './session';
 
 export const sleep = (ms: number): Promise<void> => 
   new Promise(resolve => setTimeout(resolve, ms));
@@ -55,6 +56,59 @@ export const formatPhone = (phone: string): string => {
     return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
   }
   return phone;
+};
+
+export const validateZIP = async (zip: string): Promise<any> => {
+  try {
+    const sessionData = getSessionData();
+    
+    const response = await fetch(config.api.zipValidation, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        zip,
+        session_id: sessionData.session_id
+      })
+    });
+    
+    const data = await response.json();
+    
+    // Store ENTIRE response if valid
+    if (data.status === 'valid') {
+      storeValidation('zip_validation', data);
+    }
+    
+    return data; // Return whatever backend sends
+  } catch (error) {
+    console.error('ZIP validation error:', error);
+    return { status: 'error', message: 'Validation failed' };
+  }
+};
+
+export const validateEmail = async (email: string): Promise<any> => {
+  try {
+    const sessionData = getSessionData();
+    
+    const response = await fetch(config.api.emailValidation, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        session_id: sessionData.session_id
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === 'valid') {
+      storeValidation('email_validation', data);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Email validation error:', error);
+    return { status: 'error', message: 'Validation failed' };
+  }
 };
 
 export const validateField = async (step: any, value: any, sessionData: any) => {
