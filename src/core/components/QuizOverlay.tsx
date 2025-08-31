@@ -137,17 +137,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       // Store quiz answer
       storeQuizAnswer(configStep.id, answerValue);
       
-      // Auto-advance for qualifying questions (not ZIP or contact)
-      if (currentStep > 0 && currentStep < quizConfig.steps.length) {
+      // Auto-advance for qualifying questions (radio button questions)
+      if (configStep.type === 'button-group') {
         setTimeout(() => {
-          if (currentStep === quizConfig.steps.length - 1) {
-            // After last qualifying question, show loading
-            runLoadingAnimation();
-          } else {
-            // Move to next step
-            setCurrentStep(currentStep + 1);
-          }
-        }, 300); // Small delay for visual feedback
+          handleNext();
+        }, 300); // Small delay for better UX
       }
     }
   };
