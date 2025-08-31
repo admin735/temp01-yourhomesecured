@@ -5,16 +5,17 @@ interface SessionData {
   landing_page: string;
   referrer: string;
   
-  // UTM parameters
-  utm_source: string;
-  utm_medium: string;
-  utm_campaign: string;
-  utm_term: string;
-  utm_content: string;
-  
-  // Click ID tracking
-  click_id: string;
-  click_id_type: string; // fbclid, gclid, ttclid, etc.
+  // All tracking parameters grouped
+  tracking: {
+    utm_source: string;
+    utm_medium: string;
+    utm_campaign: string;
+    utm_term: string;
+    utm_content: string;
+    click_id: string;
+    click_id_type: string;
+    // Add any other tracking params as needed
+  };
   
   // Rest of the data
   validations: Record<string, any>;
@@ -80,53 +81,66 @@ export const getSessionData = (): SessionData => {
   if (stored) {
     const data = JSON.parse(stored);
     
-    // Migration code for old format
-    if (data.utm_params && !data.utm_source) {
-      data.utm_source = data.utm_params.utm_source || '';
-      data.utm_medium = data.utm_params.utm_medium || '';
-      data.utm_campaign = data.utm_params.utm_campaign || '';
-      data.utm_term = data.utm_params.utm_term || '';
-      data.utm_content = data.utm_params.utm_content || '';
+    // Migration: Move UTMs to tracking object if at root
+    if (!data.tracking && (data.utm_source || data.utm_params)) {
+      data.tracking = {
+        utm_source: data.utm_source || data.utm_params?.utm_source || '',
+        utm_medium: data.utm_medium || data.utm_params?.utm_medium || '',
+        utm_campaign: data.utm_campaign || data.utm_params?.utm_campaign || '',
+        utm_term: data.utm_term || data.utm_params?.utm_term || '',
+        utm_content: data.utm_content || data.utm_params?.utm_content || '',
+        click_id: data.click_id || '',
+        click_id_type: data.click_id_type || ''
+      };
+      
+      // Clean up old structure
+      delete data.utm_source;
+      delete data.utm_medium;
+      delete data.utm_campaign;
+      delete data.utm_term;
+      delete data.utm_content;
       delete data.utm_params;
+      delete data.click_id;
+      delete data.click_id_type;
+      
       sessionStorage.setItem('session_data', JSON.stringify(data));
     }
     
     return data;
   }
   
-  // Extract all URL parameters
+  const params = new URLSearchParams(window.location.search);
   const params = new URLSearchParams(window.location.search);
   
-  // Find click ID parameter
+  // Find click ID
   let click_id = '';
   let click_id_type = '';
   
-  // Check all parameters for ones containing 'clid'
   for (const [key, value] of params.entries()) {
     if (key.toLowerCase().includes('clid')) {
       click_id = value;
-      click_id_type = key; // Store which type (fbclid, gclid, ttclid, etc.)
-      break; // Use first match
+      click_id_type = key;
+      break;
     }
   }
   
-  // Initialize with UTMs and click ID at root level
+  // Initialize with tracking object
   const newSession: SessionData = {
     session_id: generateSessionId(),
     timestamp: new Date().toISOString(),
     landing_page: window.location.pathname,
     referrer: document.referrer || 'direct',
     
-    // UTM parameters
-    utm_source: params.get('utm_source') || '',
-    utm_medium: params.get('utm_medium') || '',
-    utm_campaign: params.get('utm_campaign') || '',
-    utm_term: params.get('utm_term') || '',
-    utm_content: params.get('utm_content') || '',
-    
-    // Click ID tracking
-    click_id: click_id,
-    click_id_type: click_id_type,
+    // All tracking params in one object
+    tracking: {
+      utm_source: params.get('utm_source') || '',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || '',
+      utm_term: params.get('utm_term') || '',
+      utm_content: params.get('utm_content') || '',
+      click_id: click_id,
+      click_id_type: click_id_type
+    },
     
     validations: {},
     quiz_answers: {},
@@ -140,9 +154,24 @@ export const getSessionData = (): SessionData => {
 export const getFinalSubmissionPayload = () => {
   const sessionData = getSessionData();
   
-  // Everything is already at root level, just spread it
   return {
-    ...sessionData,
+    session_id: sessionData.session_id,
+    timestamp: sessionData.timestamp,
+    landing_page: sessionData.landing_page,
+    referrer: sessionData.referrer,
+    
+    // Include entire tracking object
+    tracking: sessionData.tracking,
+    
+    // User data
+    user_data: {
+      ...sessionData.form_data,
+      quiz_answers: sessionData.quiz_answers
+    },
+    
+    // Enrichment
+    enrichment_data: sessionData.validations,
+    
     submitted_at: new Date().toISOString(),
     user_agent: navigator.userAgent
   };
