@@ -1,23 +1,21 @@
 interface SessionData {
-  // Core session info
   session_id: string;
   timestamp: string;
   landing_page: string;
   referrer: string;
   
-  // All tracking parameters grouped
+  // Flexible tracking object
   tracking: {
-    utm_source: string;
-    utm_medium: string;
-    utm_campaign: string;
-    utm_term: string;
-    utm_content: string;
-    click_id: string;
-    click_id_type: string;
-    // Add any other tracking params as needed
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    click_id?: string;
+    click_id_type?: string;
+    [key: string]: string | undefined; // Allow any additional utm_ parameters
   };
   
-  // Rest of the data
   validations: Record<string, any>;
   quiz_answers: Record<string, any>;
   form_data: Record<string, any>;
