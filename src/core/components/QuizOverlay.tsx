@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
-import { getSessionData } from '../utils/session';
+import { getSessionData, storeQuizAnswer, storeValidation, storeFormField } from '../utils/session';
 import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
@@ -67,10 +67,16 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     const configStep = quizConfig.steps[currentStep];
     if (configStep) {
       const selectedOption = configStep.options?.find(opt => opt.label === value);
+      const answerValue = selectedOption?.value || value;
+      
+      // Update local state
       setQuizData(prev => ({
         ...prev,
-        [configStep.id]: selectedOption?.value || value
+        [configStep.id]: answerValue
       }));
+      
+      // Store quiz answer
+      storeQuizAnswer(configStep.id, answerValue);
     }
   };
 
@@ -88,13 +94,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       }
     }
     
+    // Update local state
     setQuizData(prev => ({
       ...prev,
       [field]: value
     }));
+    
+    // Store form field data
+    if (['first_name', 'last_name', 'phone', 'email'].includes(field)) {
+      storeFormField(field, value);
+    }
 
     // Handle ZIP validation when 5 digits entered
     if (field === 'zip' && value.length === 5) {
+      // Store user's ZIP answer first
+      storeQuizAnswer('zip', value);
+      
       // Set loading immediately
       setValidationState({ loading: true, valid: null, error: null });
       
@@ -113,9 +128,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           error: result.error
         });
         
-        // Store enrichment data if valid
-        if (result.valid && result.data) {
-          sessionStorage.setItem('enrichment_zip', JSON.stringify(result.data));
+        // Store entire validation response if valid
+        if (result.valid) {
+          storeValidation('zip', result);
         }
       } catch (error) {
         // Handle any unexpected errors
@@ -155,9 +170,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         error: result.error
       });
       
-      // Store enrichment data if valid
-      if (result.valid && result.data) {
-        sessionStorage.setItem('enrichment_email', JSON.stringify(result.data));
+      // Store entire validation response if valid
+      if (result.valid) {
+        storeValidation('email', result);
       }
     } catch (error) {
       setEmailValidationState({
