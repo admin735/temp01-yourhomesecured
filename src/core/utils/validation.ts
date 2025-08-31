@@ -40,58 +40,6 @@ export const validateZIP = (zip: string): boolean => {
   // Then check blacklist
   return !isBlacklistedZIP(zip);
 };
-export const validateZIP = async (zip: string): Promise<any> => {
-  try {
-    const sessionData = getSessionData();
-    
-    const response = await fetch(config.api.zipValidation, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        zip,
-        session_id: sessionData.session_id
-      })
-    });
-    
-    const data = await response.json();
-    
-    // Store ENTIRE response if valid
-    if (data.status === 'valid') {
-      storeValidation('zip_validation', data);
-    }
-    
-    return data; // Return whatever backend sends
-  } catch (error) {
-    console.error('ZIP validation error:', error);
-    return { status: 'error', message: 'Validation failed' };
-  }
-};
-
-export const validateEmail = async (email: string): Promise<any> => {
-  try {
-    const sessionData = getSessionData();
-    
-    const response = await fetch(config.api.emailValidation, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        session_id: sessionData.session_id
-      })
-    });
-    
-    const data = await response.json();
-    
-    if (data.status === 'valid') {
-      storeValidation('email_validation', data);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Email validation error:', error);
-    return { status: 'error', message: 'Validation failed' };
-  }
-};
 
 export const validateField = async (step: any, value: any, sessionData: any) => {
   // Quick fail for blacklisted ZIPs before any API call
