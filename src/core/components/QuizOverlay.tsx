@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
@@ -46,6 +47,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   });
   const [showExitModal, setShowExitModal] = useState(false);
   const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
+  
+  // Detect autofill
+  useEffect(() => {
+    const checkAutofill = () => {
+      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+      const phoneInput = document.querySelector('input[type="tel"]') as HTMLInputElement;
+      
+      if (emailInput && emailInput.value && !lastValidatedValues.email) {
+        handleEmailValidation(emailInput.value);
+      }
+      
+      if (phoneInput && phoneInput.value && !lastValidatedValues.phone) {
+        const cleaned = phoneInput.value.replace(/\D/g, '');
+        if (cleaned.length === 10) {
+          handlePhoneValidation(phoneInput.value);
+        }
+      }
+    };
+    
+    // Check on mount and after a delay (for slow autofill)
+    setTimeout(checkAutofill, 100);
+    setTimeout(checkAutofill, 500);
+    setTimeout(checkAutofill, 1000);
+  }, [currentStep]); // Re-check when step changes
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
