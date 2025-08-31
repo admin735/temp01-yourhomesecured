@@ -136,6 +136,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       // Store quiz answer
       storeQuizAnswer(configStep.id, answerValue);
+      
+      // Auto-advance for qualifying questions (not ZIP or contact)
+      if (currentStep > 0 && currentStep < quizConfig.steps.length) {
+        setTimeout(() => {
+          if (currentStep === quizConfig.steps.length - 1) {
+            // After last qualifying question, show loading
+            runLoadingAnimation();
+          } else {
+            // Move to next step
+            setCurrentStep(currentStep + 1);
+          }
+        }, 300); // Small delay for visual feedback
+      }
     }
   };
 
@@ -794,7 +807,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Footer */}
-        {!showThankYou && (
+        {!showThankYou && (currentStep === 0 || currentStep === steps.length - 1) && (
           <div className="p-6 border-t border-gray-200 flex justify-between items-center">
             <div className="text-sm text-gray-500">
               {currentStep + 1} of {steps.length}
