@@ -1,12 +1,35 @@
 interface SessionData {
+  // Core session info
   session_id: string;
   timestamp: string;
   landing_page: string;
   referrer: string;
   utm_params: Record<string, string>;
-  validations: Record<string, any>; // Store ANY validation response
-  quiz_answers: Record<string, any>;
-  metadata: Record<string, any>; // Any additional data
+  
+  // Store ALL data from validations/enrichments
+  validations: {
+    zip?: any;      // Full ZIP validation response
+    phone?: any;    // Full phone validation response
+    email?: any;    // Full email validation response
+    qualification?: any; // Qualification API response
+  };
+  
+  // Quiz answers (raw user input)
+  quiz_answers: {
+    zip?: string;
+    property_type?: string;
+    ownership_status?: string;
+    timeline?: string;
+    [key: string]: any; // Allow any quiz question
+  };
+  
+  // Form data
+  form_data: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+  };
 }
 
 export const captureUTMParams = (): Record<string, string> => {
@@ -29,20 +52,24 @@ export const generateSessionId = (): string => {
   return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-// Store entire validation response as-is
-export const storeValidation = (key: string, response: any) => {
+// Store validation responses as-is
+export const storeValidation = (type: string, response: any) => {
   const sessionData = getSessionData();
-  
-  if (!sessionData.validations) {
-    sessionData.validations = {};
-  }
-  
-  // Store ENTIRE response without modification
-  sessionData.validations[key] = {
-    ...response,
-    validated_at: new Date().toISOString()
-  };
-  
+  sessionData.validations[type] = response;
+  sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+};
+
+// Store quiz answer
+export const storeQuizAnswer = (question: string, answer: any) => {
+  const sessionData = getSessionData();
+  sessionData.quiz_answers[question] = answer;
+  sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+};
+
+// Store form field
+export const storeFormField = (field: string, value: any) => {
+  const sessionData = getSessionData();
+  sessionData.form_data[field] = value;
   sessionStorage.setItem('session_data', JSON.stringify(sessionData));
 };
 
@@ -61,23 +88,39 @@ export const getSessionData = (): SessionData => {
     utm_params: extractUTMParams(),
     validations: {},
     quiz_answers: {},
-    metadata: {}
+    form_data: {}
   };
   
   sessionStorage.setItem('session_data', JSON.stringify(newSession));
   return newSession;
 };
 
-// Get all data for submission
-export const getCompleteSessionData = () => {
+// Get complete payload for submission
+export const getFinalSubmissionPayload = () => {
   const sessionData = getSessionData();
   
-  // Return EVERYTHING as flat object for submission
   return {
-    ...sessionData,
-    ...sessionData.validations, // Spread all validation responses
-    ...sessionData.quiz_answers, // Spread all quiz answers
-    submitted_at: new Date().toISOString()
+    // Session metadata
+    session: {
+      id: sessionData.session_id,
+      timestamp: sessionData.timestamp,
+      landing_page: sessionData.landing_page,
+      referrer: sessionData.referrer,
+      utm_params: sessionData.utm_params
+    },
+    
+    // User inputs
+    user_data: {
+      ...sessionData.form_data,
+      quiz_answers: sessionData.quiz_answers
+    },
+    
+    // All enrichment data from APIs
+    enrichment_data: sessionData.validations,
+    
+    // Submission metadata
+    submitted_at: new Date().toISOString(),
+    user_agent: navigator.userAgent
   };
 };
 
