@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
