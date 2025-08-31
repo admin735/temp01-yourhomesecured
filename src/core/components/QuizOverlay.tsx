@@ -807,14 +807,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
               {currentStep + 1} of {steps.length}
             </div>
             <button
-              onClick={handleNext}
+              onClick={(e) => {
+                if (!canProceed()) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return;
+                }
+                handleNext();
+              }}
               disabled={!canProceed()}
               className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                 canProceed()
                   ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50 pointer-events-none'
               }`}
               title={!canProceed() ? 'Please complete and validate all fields' : ''}
+              style={{ pointerEvents: !canProceed() ? 'none' : 'auto' }}
             >
               {currentStep === steps.length - 1 ? 'Get My Options' : 'Next'}
               {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4" />}
