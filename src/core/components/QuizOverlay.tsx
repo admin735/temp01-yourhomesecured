@@ -165,6 +165,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         
         // Store entire validation response if valid
         if (result.valid) {
+          console.log('ZIP validation successful, storing:', result);
           storeValidation('zip', result);
         }
       } catch (error) {
