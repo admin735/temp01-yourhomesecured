@@ -679,14 +679,28 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       value={quizData.first_name}
                       onChange={(e) => handleInputChange('first_name', e.target.value)}
                       className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
                     <input
                       type="text"
                       placeholder="Last Name"
                       value={quizData.last_name}
                       onChange={(e) => handleInputChange('last_name', e.target.value)}
-                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
+                    
+                    {/* Loading indicator */}
+                    {phoneValidationState.loading && (
+                      <Loader2 className="absolute right-4 top-4 w-5 h-5 animate-spin text-blue-500" />
+                    )}
+                    
+                    {/* Valid checkmark */}
+                    {phoneValidationState.status === 'valid' && (
+                      <CheckCircle className="absolute right-4 top-4 w-5 h-5 text-green-500" />
+                    )}
+                    
+                    {/* Invalid X */}
+                    {phoneValidationState.status === 'invalid' && (
+                      <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
+                    )}
                   </div>
                   <input
                     type="tel"
@@ -702,8 +716,10 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     }}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  {quizData.phone && phoneValidationState.status === 'invalid' && (
-                    <p className="mt-1 text-sm text-red-600">Valid phone number required</p>
+                  
+                  {/* Error message */}
+                  {phoneValidationState.status === 'invalid' && phoneValidationState.error && (
+                    <p className="mt-1 text-sm text-red-600">{phoneValidationState.error}</p>
                   )}
                   <div className="relative">
                     <input
