@@ -110,7 +110,6 @@ export const getSessionData = (): SessionData => {
   }
   
   const params = new URLSearchParams(window.location.search);
-  const params = new URLSearchParams(window.location.search);
   
   // Find click ID
   let click_id = '';
