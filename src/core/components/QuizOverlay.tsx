@@ -22,6 +22,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [consentTimestamp, setConsentTimestamp] = useState('');
   const [emailValidationState, setEmailValidationState] = useState<any>({});
   const [showExitModal, setShowExitModal] = useState(false);
+  const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
