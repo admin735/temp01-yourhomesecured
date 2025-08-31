@@ -119,43 +119,6 @@ export const getSessionData = (): SessionData => {
   sessionStorage.setItem('session_data', JSON.stringify(newSession));
   return newSession;
 };
-  let click_id = '';
-  let click_id_type = '';
-  
-  for (const [key, value] of params.entries()) {
-    if (key.toLowerCase().includes('clid')) {
-      click_id = value;
-      click_id_type = key;
-      break;
-    }
-  }
-  
-  // Initialize with tracking object
-  const newSession: SessionData = {
-    session_id: generateSessionId(),
-    timestamp: new Date().toISOString(),
-    landing_page: window.location.pathname,
-    referrer: document.referrer || 'direct',
-    
-    // All tracking params in one object
-    tracking: {
-      utm_source: params.get('utm_source') || '',
-      utm_medium: params.get('utm_medium') || '',
-      utm_campaign: params.get('utm_campaign') || '',
-      utm_term: params.get('utm_term') || '',
-      utm_content: params.get('utm_content') || '',
-      click_id: click_id,
-      click_id_type: click_id_type
-    },
-    
-    validations: {},
-    quiz_answers: {},
-    form_data: {}
-  };
-  
-  sessionStorage.setItem('session_data', JSON.stringify(newSession));
-  return newSession;
-};
 
 export const getFinalSubmissionPayload = () => {
   const sessionData = getSessionData();
