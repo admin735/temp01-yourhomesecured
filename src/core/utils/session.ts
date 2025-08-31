@@ -5,21 +5,19 @@ interface SessionData {
   landing_page: string;
   referrer: string;
   
-  // UTM parameters at root level
+  // UTM parameters
   utm_source: string;
   utm_medium: string;
   utm_campaign: string;
   utm_term: string;
   utm_content: string;
   
-  // Validations and answers
-  validations: {
-    zip?: any;      // Full ZIP validation response
-    phone?: any;    // Full phone validation response
-    email?: any;    // Full email validation response
-    qualification?: any; // Qualification API response
-  };
+  // Click ID tracking
+  click_id: string;
+  click_id_type: string; // fbclid, gclid, ttclid, etc.
   
+  // Rest of the data
+  validations: Record<string, any>;
   quiz_answers: Record<string, any>;
   form_data: Record<string, any>;
 }
@@ -82,36 +80,53 @@ export const getSessionData = (): SessionData => {
   if (stored) {
     const data = JSON.parse(stored);
     
-    // If old format with utm_params object, migrate to flat structure
+    // Migration code for old format
     if (data.utm_params && !data.utm_source) {
       data.utm_source = data.utm_params.utm_source || '';
       data.utm_medium = data.utm_params.utm_medium || '';
       data.utm_campaign = data.utm_params.utm_campaign || '';
       data.utm_term = data.utm_params.utm_term || '';
       data.utm_content = data.utm_params.utm_content || '';
-      delete data.utm_params; // Remove the nested object
+      delete data.utm_params;
       sessionStorage.setItem('session_data', JSON.stringify(data));
     }
     
     return data;
   }
   
-  // Extract UTM parameters
+  // Extract all URL parameters
   const params = new URLSearchParams(window.location.search);
   
-  // Initialize with UTMs at root level
+  // Find click ID parameter
+  let click_id = '';
+  let click_id_type = '';
+  
+  // Check all parameters for ones containing 'clid'
+  for (const [key, value] of params.entries()) {
+    if (key.toLowerCase().includes('clid')) {
+      click_id = value;
+      click_id_type = key; // Store which type (fbclid, gclid, ttclid, etc.)
+      break; // Use first match
+    }
+  }
+  
+  // Initialize with UTMs and click ID at root level
   const newSession: SessionData = {
     session_id: generateSessionId(),
     timestamp: new Date().toISOString(),
     landing_page: window.location.pathname,
     referrer: document.referrer || 'direct',
     
-    // UTM parameters at root level
+    // UTM parameters
     utm_source: params.get('utm_source') || '',
     utm_medium: params.get('utm_medium') || '',
     utm_campaign: params.get('utm_campaign') || '',
     utm_term: params.get('utm_term') || '',
     utm_content: params.get('utm_content') || '',
+    
+    // Click ID tracking
+    click_id: click_id,
+    click_id_type: click_id_type,
     
     validations: {},
     quiz_answers: {},
