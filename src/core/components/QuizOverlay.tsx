@@ -25,7 +25,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
-    const ENABLE_QUALIFICATION_CHECK = true;
+    const ENABLE_QUALIFICATION_CHECK = false;
     
     if (!ENABLE_QUALIFICATION_CHECK) {
       return true; // Always qualified when toggle is OFF
