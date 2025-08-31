@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
-import { getSessionData, storeQuizAnswer, storeValidation, storeFormField } from '../utils/session';
+import { getSessionData, storeQuizAnswer, storeValidation, storeFormField, getFinalSubmissionPayload } from '../utils/session';
 import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
@@ -23,6 +23,34 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [emailValidationState, setEmailValidationState] = useState<any>({});
   const [showExitModal, setShowExitModal] = useState(false);
   
+  const checkQualification = async () => {
+    const sessionData = getSessionData();
+    
+    try {
+      // Send all quiz answers for qualification
+      const response = await fetch(config.api.qualification, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionData.session_id,
+          answers: sessionData.quiz_answers,
+          zip_data: sessionData.validations.zip // Include enrichment
+        })
+      });
+      
+      const result = await response.json();
+      
+      // Store qualification result
+      storeValidation('qualification', result);
+      
+      return result.status === 'qualified';
+    } catch (error) {
+      console.error('Qualification check error:', error);
+      // Default to qualified on error to not block user
+      return true;
+    }
+  };
+
   // Store answers using config IDs
   const [quizData, setQuizData] = useState({
     zip: '',
@@ -202,14 +230,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     setIsLoadingStep(true);
     const stages = quizConfig.loadingStep.stages;
     
+    // Run qualification check during loading
+    let isQualified = true;
+    
     for (let stage of stages) {
       setLoadingProgress(stage.progress);
       setLoadingMessage(stage.message);
+      
+      // Run qualification check at 50% progress
+      if (stage.progress === 50 && config.api.qualification) {
+        isQualified = await checkQualification();
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 750));
     }
     
     setIsLoadingStep(false);
-    setCurrentStep(currentStep + 1);
+    
+    // Only proceed to contact form if qualified
+    if (isQualified) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // Handle disqualification - could show different message or redirect
+      setShowThankYou(true);
+    }
   };
 
   const handleNext = async () => {
@@ -231,34 +275,16 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   const handleSubmit = () => {
     const submitWithErrorHandling = withErrorBoundary(() => {
-    const finalData = {
-      answers: {
-        zip: quizData.zip,
-        home_status: quizData.home_status,
-        install_pref: quizData.install_pref,
-        intent_timing: quizData.intent_timing,
-        existing_system: quizData.existing_system
-      },
-      lead: {
-        first_name: quizData.first_name,
-        last_name: quizData.last_name,
-        email: quizData.email,
-        phone: quizData.phone
-      },
-      consent: {
-        tcpa_agreed: tcpaConsent,
-        tcpa_timestamp: consentTimestamp,
-        tcpa_text: quizConfig.submission.consent.text,
-        tcpa_version: '2025_v1'
-      },
-      session: {
-        landing_page: window.location.pathname,
-        referrer: document.referrer || 'direct',
-        session_id: sessionStorage.getItem('session_id') || '',
-        timestamp: new Date().toISOString()
-      },
-      utm_params: JSON.parse(sessionStorage.getItem('utm_params') || '{}')
-    };
+      // Get complete session data including all validations
+      const finalData = {
+        ...getFinalSubmissionPayload(),
+        consent: {
+          tcpa_agreed: tcpaConsent,
+          tcpa_timestamp: consentTimestamp,
+          tcpa_text: quizConfig.submission.consent.text,
+          tcpa_version: '2025_v1'
+        }
+      };
     
     // Fire and forget - don't wait for response
     try {
