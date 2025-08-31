@@ -657,9 +657,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     >
                       <input
                         type="radio"
-                       name={`step-${currentStep}-${steps[currentStep].id}`}
+                        name={`step-${currentStep}-${steps[currentStep].id}`}
                         value={option}
-                       checked={quizData[quizConfig.steps[currentStep].id as keyof typeof quizData] === quizConfig.steps[currentStep].options?.find(opt => opt.label === option)?.value}
+                        checked={quizData[quizConfig.steps[currentStep].id as keyof typeof quizData] === quizConfig.steps[currentStep].options?.find(opt => opt.label === option)?.value}
                         onChange={(e) => handleOptionSelect(e.target.value)}
                         className="w-4 h-4 text-blue-600 mr-3"
                       />
@@ -679,11 +679,28 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       value={quizData.first_name}
                       onChange={(e) => handleInputChange('first_name', e.target.value)}
                       className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
                     <input
                       type="text"
                       placeholder="Last Name"
                       value={quizData.last_name}
                       onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={quizData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onBlur={(e) => {
+                        // Fire validation when leaving the field
+                        const cleaned = e.target.value.replace(/\D/g, '');
+                        if (cleaned.length === 10) {
+                          handlePhoneValidation(e.target.value);
+                        }
+                      }}
                       className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     
@@ -702,20 +719,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
                   </div>
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={quizData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    onBlur={(e) => {
-                      // Fire validation when leaving the field
-                      const cleaned = e.target.value.replace(/\D/g, '');
-                      if (cleaned.length === 10) {
-                        handlePhoneValidation(e.target.value);
-                      }
-                    }}
-                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
                   
                   {/* Error message */}
                   {phoneValidationState.status === 'invalid' && phoneValidationState.error && (
