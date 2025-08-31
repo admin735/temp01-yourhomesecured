@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
@@ -47,30 +46,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   });
   const [showExitModal, setShowExitModal] = useState(false);
   const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
-  
-  // Detect autofill
-  useEffect(() => {
-    const checkAutofill = () => {
-      const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
-      const phoneInput = document.querySelector('input[type="tel"]') as HTMLInputElement;
-      
-      if (emailInput && emailInput.value && !lastValidatedValues.email) {
-        handleEmailValidation(emailInput.value);
-      }
-      
-      if (phoneInput && phoneInput.value && !lastValidatedValues.phone) {
-        const cleaned = phoneInput.value.replace(/\D/g, '');
-        if (cleaned.length === 10) {
-          handlePhoneValidation(phoneInput.value);
-        }
-      }
-    };
-    
-    // Check on mount and after a delay (for slow autofill)
-    setTimeout(checkAutofill, 100);
-    setTimeout(checkAutofill, 500);
-    setTimeout(checkAutofill, 1000);
-  }, [currentStep]); // Re-check when step changes
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
@@ -161,6 +136,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       // Store quiz answer
       storeQuizAnswer(configStep.id, answerValue);
+      
+      // Auto-advance for qualifying questions (not ZIP or contact)
+      if (currentStep > 0 && currentStep < quizConfig.steps.length) {
+        setTimeout(() => {
+          if (currentStep === quizConfig.steps.length - 1) {
+            // After last qualifying question, show loading
+            runLoadingAnimation();
+          } else {
+            // Move to next step
+            setCurrentStep(currentStep + 1);
+          }
+        }, 300); // Small delay for visual feedback
+      }
     }
   };
 
@@ -819,7 +807,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Footer */}
-        {!showThankYou && (
+        {!showThankYou && (currentStep === 0 || currentStep === steps.length - 1) && (
           <div className="p-6 border-t border-gray-200 flex justify-between items-center">
             <div className="text-sm text-gray-500">
               {currentStep + 1} of {steps.length}
