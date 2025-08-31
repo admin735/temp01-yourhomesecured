@@ -185,7 +185,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   const handleEmailValidation = async (email: string) => {
-    if (!email || !email.includes('@')) return;
+    if (!email) return;
     
     // Skip if value hasn't changed since last validation
     if (email === lastValidatedValues.email) {
@@ -193,7 +193,78 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return;
     }
     
-    // Set loading immediately
+    // Common email mistakes - check BEFORE API call
+    const emailLower = email.toLowerCase();
+    
+    // Check for @ symbol
+    if (!email.includes('@')) {
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: 'Email must include @ symbol'
+      });
+      return; // Don't call API
+    }
+    
+    // Common domain typos
+    const commonMistakes = {
+      // Domain typos
+      'gmial.com': 'gmail.com',
+      'gmai.com': 'gmail.com',
+      'gmil.com': 'gmail.com',
+      'hotmial.com': 'hotmail.com',
+      'hotmal.com': 'hotmail.com',
+      'hotmil.com': 'hotmail.com',
+      'hotmsl.com': 'hotmail.com',
+      'yahooo.com': 'yahoo.com',
+      'yaho.com': 'yahoo.com',
+      'yaoo.com': 'yahoo.com',
+      'outlok.com': 'outlook.com',
+      'outloo.com': 'outlook.com',
+      // Extension typos
+      '.con': '.com',
+      '.cpm': '.com',
+      '.comm': '.com',
+      '.co': '.com', // Careful with this one as .co is valid
+      '.ney': '.net',
+      '.orf': '.org',
+      '.orgg': '.org'
+    };
+    
+    // Check for domain/extension typos
+    for (const [mistake, correct] of Object.entries(commonMistakes)) {
+      if (emailLower.includes(mistake)) {
+        setEmailValidationState({
+          loading: false,
+          valid: false,
+          error: `Did you mean ${email.replace(mistake, correct)}?`
+        });
+        return; // Don't call API
+      }
+    }
+    
+    // Basic format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: 'Please enter a valid email format'
+      });
+      return; // Don't call API
+    }
+    
+    // Check for spaces
+    if (email.includes(' ')) {
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: 'Email cannot contain spaces'
+      });
+      return; // Don't call API
+    }
+    
+    // All client-side checks passed, now call API
     setEmailValidationState({ loading: true, valid: null, error: null });
     
     // Create email validation config
@@ -209,10 +280,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     const sessionData = getSessionData();
     
     try {
-      // Execute validation
       const result = await validateField(emailConfig, email, sessionData);
       
-      // Track this as the last validated value
+      // Track last validated
       setLastValidatedValues(prev => ({
         ...prev,
         email: email
@@ -224,7 +294,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         error: result.error
       });
       
-      // Store entire validation response if valid
       if (result.valid) {
         storeValidation('email', result);
       }
