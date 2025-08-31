@@ -5,7 +5,6 @@ interface EnvironmentConfig {
     emailValidation: string | null;
     phoneValidation: string | null;
     qualification: string | null;
-    errorReporting: string | null;
   };
   features: {
     mockValidation: boolean;
@@ -19,12 +18,11 @@ const getConfig = (): EnvironmentConfig => {
   
   return {
     api: {
-      leadSubmit: import.meta.env.VITE_LEAD_WEBHOOK || 'https://your-backend.com/api/leads/submit',
-      zipValidation: import.meta.env.VITE_ZIP_VALIDATOR || 'https://your-backend.com/api/validate/zip',
-      emailValidation: import.meta.env.VITE_EMAIL_VALIDATOR || 'https://your-backend.com/api/validate/email',
-      phoneValidation: import.meta.env.VITE_PHONE_VALIDATOR || 'https://your-backend.com/api/validate/phone',
-      qualification: import.meta.env.VITE_QUALIFICATION_API || 'https://your-backend.com/api/qualify',
-      errorReporting: import.meta.env.VITE_ERROR_WEBHOOK || 'https://your-backend.com/api/errors',
+      leadSubmit: import.meta.env.VITE_LEAD_WEBHOOK || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/df2c3efc-22b6-4062-973b-f7719067cdd9',
+      zipValidation: import.meta.env.VITE_ZIP_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/8ab1e253-7d13-4307-958a-b27ede0aa0cb',
+      emailValidation: import.meta.env.VITE_EMAIL_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/6b653c03-3862-40da-b899-6041353c4fd0',
+      phoneValidation: import.meta.env.VITE_PHONE_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/87b9497a-68b1-43b1-9640-4820e1f02881',
+      qualification: import.meta.env.VITE_QUALIFICATION_API || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/7415d839-ddf2-4708-a848-a565efeefbbe'
     },
     features: {
       mockValidation: false, // Set to false since you have real endpoints
