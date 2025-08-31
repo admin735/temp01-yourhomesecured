@@ -589,6 +589,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     value={quizData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onBlur={(e) => handlePhoneValidation(e.target.value)}
+                    onBlur={(e) => handlePhoneValidation(e.target.value)}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <div className="relative">
