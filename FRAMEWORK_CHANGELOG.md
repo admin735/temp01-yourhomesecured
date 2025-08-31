@@ -1,6 +1,6 @@
 # Framework Changelog
 
-## [1.0.0] - 2024-08-29
+## [1.0.0] - 2024-12-XX
 
 ### Initial Release
 - Multi-step quiz with validation
