@@ -13,6 +13,12 @@ interface EmailValidationState {
   suggestion?: string;
 }
 
+interface PhoneValidationState {
+  loading: boolean;
+  status: 'valid' | 'invalid' | null;
+  error: string | null;
+}
+
 interface QuizOverlayProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,6 +38,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     valid: null,
     error: null,
     suggestion: undefined
+  });
+  const [phoneValidationState, setPhoneValidationState] = useState<PhoneValidationState>({
+    loading: false,
+    status: null,
+    error: null
   });
   const [showExitModal, setShowExitModal] = useState(false);
   const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
@@ -324,7 +335,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
     
     // Set loading immediately
-    setValidationState({ loading: true, valid: null, error: null });
+    setPhoneValidationState({ loading: true, status: null, error: null });
     
     // Create phone validation config
     const phoneConfig = {
@@ -348,9 +359,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         phone: phone
       }));
       
-      setValidationState({
+      setPhoneValidationState({
         loading: false,
-        valid: result.valid,
+        status: result.valid ? 'valid' : 'invalid',
         error: result.error
       });
       
@@ -359,9 +370,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         storeValidation('phone', result);
       }
     } catch (error) {
-      setValidationState({
+      setPhoneValidationState({
         loading: false,
-        valid: false,
+        status: 'invalid',
         error: 'Validation failed'
       });
     }
@@ -390,9 +401,14 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return quizData[configStep.id as keyof typeof quizData] !== '';
     }
     
-    // Contact step - now requires consent
-    return quizData.first_name && quizData.last_name && 
-           quizData.phone && quizData.email && tcpaConsent;
+    // Contact step - require BOTH email and phone to be valid
+    return quizData.first_name && 
+           quizData.last_name && 
+           quizData.phone && 
+           quizData.email && 
+           emailValidationState.valid === true && // Email must be validated
+           phoneValidationState.status === 'valid' && // Phone must be validated
+           tcpaConsent;
   };
 
   const runLoadingAnimation = async () => {
@@ -677,17 +693,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     placeholder="Phone Number"
                     value={quizData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    onBlur={(e) => handlePhoneValidation(e.target.value)}
-                    onBlur={(e) => handlePhoneValidation(e.target.value)}
+                    onBlur={(e) => {
+                      // Fire validation when leaving the field
+                      const cleaned = e.target.value.replace(/\D/g, '');
+                      if (cleaned.length === 10) {
+                        handlePhoneValidation(e.target.value);
+                      }
+                    }}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {quizData.phone && phoneValidationState.status === 'invalid' && (
+                    <p className="mt-1 text-sm text-red-600">Valid phone number required</p>
+                  )}
                   <div className="relative">
                     <input
                       type="email"
                       placeholder="Email Address"
                       value={quizData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      onBlur={(e) => handleEmailValidation(e.target.value)}
+                      onBlur={(e) => {
+                        // Fire validation when leaving the field for any reason
+                        if (e.target.value) {
+                          handleEmailValidation(e.target.value);
+                        }
+                      }}
                       className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     {emailValidationState.loading && (
@@ -700,6 +729,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
                   </div>
+                  {quizData.email && emailValidationState.valid === false && (
+                    <p className="mt-1 text-sm text-red-600">Valid email required</p>
+                  )}
                   {emailValidationState.error && (
                     <p className="mt-1 text-sm text-red-600">
                       {emailValidationState.suggestion ? (
@@ -753,9 +785,10 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
               disabled={!canProceed()}
               className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                 canProceed()
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
               }`}
+              title={!canProceed() ? 'Please complete and validate all fields' : ''}
             >
               {currentStep === steps.length - 1 ? 'Get My Options' : 'Next'}
               {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4" />}
