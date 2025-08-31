@@ -24,6 +24,13 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [showExitModal, setShowExitModal] = useState(false);
   
   const checkQualification = async () => {
+    // Toggle to skip qualification logic - set to false to always qualify
+    const ENABLE_QUALIFICATION_CHECK = true;
+    
+    if (!ENABLE_QUALIFICATION_CHECK) {
+      return true; // Always qualified when toggle is OFF
+    }
+    
     const sessionData = getSessionData();
     
     try {
