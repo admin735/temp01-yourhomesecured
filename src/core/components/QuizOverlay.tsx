@@ -282,8 +282,16 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   const handleSubmit = () => {
     const submitWithErrorHandling = withErrorBoundary(() => {
-      // Get complete session data including all validations
-      const finalData = {
+      handleFinalSubmission();
+    });
+    
+    submitWithErrorHandling();
+  };
+
+  const handleFinalSubmission = async () => {
+    try {
+      // Get EVERYTHING
+      const payload = {
         ...getFinalSubmissionPayload(),
         consent: {
           tcpa_agreed: tcpaConsent,
@@ -292,77 +300,35 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           tcpa_version: '2025_v1'
         }
       };
-    
-    // Fire and forget - don't wait for response
-    try {
-      const webhookUrl = import.meta.env.VITE_LEAD_WEBHOOK || 'https://webhook.site/unique-test-id';
       
-      fetch(webhookUrl, {
+      const response = await fetch(config.api.leadSubmit, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalData)
-      }).then(response => {
-        // Log for debugging only
-        if (import.meta.env.VITE_DEBUG_MODE === 'true') {
-          console.log('Webhook status:', response.status);
-        }
-      }).catch(error => {
-        reportError(error, { context: 'webhook_submission', data: finalData });
-        // Log errors only in debug mode
-        if (import.meta.env.VITE_DEBUG_MODE === 'true') {
-          console.error('Webhook error:', error);
-        }
-      });
-    } catch (error) {
-      reportError(error as Error, { context: 'webhook_submission_sync', data: finalData });
-      // Silent fail - user doesn't need to know
-    }
-    
-    // Always show thank you immediately
-    setShowThankYou(true);
-    });
-    
-    submitWithErrorHandling();
-  const handleEmailValidation = async (email: string) => {
-    if (!email || !email.includes('@')) return;
-    
-    // Set loading immediately
-    setEmailValidationState({ loading: true, valid: null, error: null });
-    
-    // Create email validation config
-    const emailConfig = {
-      id: 'email',
-      validation: {
-        apiEndpoint: config.api.emailValidation,
-        mockDelay: 1500,
-        message: 'Please enter a valid email address'
-      }
-    };
-    
-    const sessionData = getSessionData();
-    
-    try {
-      // Execute validation
-      const result = await validateField(emailConfig, email, sessionData);
-      setEmailValidationState({
-        loading: false,
-        valid: result.valid,
-        error: result.error
+        body: JSON.stringify(payload)
       });
       
-      // Store enrichment data if valid
-      if (result.valid && result.data) {
-        sessionStorage.setItem('enrichment_email', JSON.stringify(result.data));
+      const result = await response.json();
+      
+      // Log for debugging only
+      if (config.features.debugMode) {
+        console.log('Submission result:', result);
       }
+      
+      // Always show thank you regardless of response
+      setShowThankYou(true);
+      
+      return result;
     } catch (error) {
-      setEmailValidationState({
-        loading: false,
-        valid: false,
-        error: 'Validation failed'
-      });
+      reportError(error as Error, { context: 'final_submission' });
+      
+      // Log errors only in debug mode
+      if (config.features.debugMode) {
+        console.error('Submission error:', error);
+      }
+      
+      // Still show thank you - don't block user experience
+      setShowThankYou(true);
     }
-  };
-
   };
 
   const getThankYouMessage = () => {
