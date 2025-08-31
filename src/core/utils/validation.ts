@@ -69,28 +69,38 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
       
       clearTimeout(timeout);
       const data = await response.json();
+      console.log('Raw API response:', data);
       
       // Handle new response format for validation endpoints
       if (step.id === 'zip' || step.id === 'email' || step.id === 'phone') {
         if (data.status === 'valid') {
-          return { 
+          const result = { 
             valid: true, 
             error: null,
-            data: data.data // enrichment data
+            data: data.data, // enrichment data
+            ...data  // Spread all properties
           };
+          console.log('Returning from validateField:', result);
+          return result;
         } else if (data.status === 'invalid') {
-          return { 
+          const result = { 
             valid: false, 
             error: data.message || 'Validation failed',
-            data: null
+            data: null,
+            ...data  // Spread all properties
           };
+          console.log('Returning from validateField:', result);
+          return result;
         } else {
           // Backend error but allow continuation
-          return {
+          const result = {
             valid: true,
             error: null,
-            data: null
+            data: null,
+            ...data  // Spread all properties
           };
+          console.log('Returning from validateField:', result);
+          return result;
         }
       } else {
         // Original format for other endpoints
