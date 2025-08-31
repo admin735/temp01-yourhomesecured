@@ -6,6 +6,13 @@ import { getSessionData, storeQuizAnswer, storeValidation, storeFormField, getFi
 import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 
+interface EmailValidationState {
+  loading: boolean;
+  valid: boolean | null;
+  error: string | null;
+  suggestion?: string;
+}
+
 interface QuizOverlayProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,7 +27,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [validationState, setValidationState] = useState<any>({});
   const [tcpaConsent, setTcpaConsent] = useState(false);
   const [consentTimestamp, setConsentTimestamp] = useState('');
-  const [emailValidationState, setEmailValidationState] = useState<any>({});
+  const [emailValidationState, setEmailValidationState] = useState<EmailValidationState>({
+    loading: false,
+    valid: null,
+    error: null,
+    suggestion: undefined
+  });
   const [showExitModal, setShowExitModal] = useState(false);
   const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
   
@@ -187,13 +199,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const handleEmailValidation = async (email: string) => {
     if (!email) return;
     
-    // Skip if value hasn't changed since last validation
+    // Skip if unchanged
     if (email === lastValidatedValues.email) {
       console.log('Email unchanged, skipping validation');
       return;
     }
     
-    // Common email mistakes - check BEFORE API call
     const emailLower = email.toLowerCase();
     
     // Check for @ symbol
@@ -201,14 +212,17 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setEmailValidationState({
         loading: false,
         valid: false,
-        error: 'Email must include @ symbol'
+        error: 'Email must include @ symbol',
+        suggestion: undefined
       });
-      return; // Don't call API
+      return;
     }
     
+    // Split email to check domain
+    const [localPart, domain] = emailLower.split('@');
+    
     // Common domain typos
-    const commonMistakes = {
-      // Domain typos
+    const domainTypos: Record<string, string> = {
       'gmial.com': 'gmail.com',
       'gmai.com': 'gmail.com',
       'gmil.com': 'gmail.com',
@@ -216,30 +230,23 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       'hotmal.com': 'hotmail.com',
       'hotmil.com': 'hotmail.com',
       'hotmsl.com': 'hotmail.com',
+      'hotms.com': 'hotmail.com',
       'yahooo.com': 'yahoo.com',
       'yaho.com': 'yahoo.com',
-      'yaoo.com': 'yahoo.com',
       'outlok.com': 'outlook.com',
-      'outloo.com': 'outlook.com',
-      // Extension typos
-      '.con': '.com',
-      '.cpm': '.com',
-      '.comm': '.com',
-      '.ney': '.net',
-      '.orf': '.org',
-      '.orgg': '.org'
+      'outloo.com': 'outlook.com'
     };
     
-    // Check for domain/extension typos
-    for (const [mistake, correct] of Object.entries(commonMistakes)) {
-      if (emailLower.includes(mistake)) {
-        setEmailValidationState({
-          loading: false,
-          valid: false,
-          error: `Did you mean ${email.replace(mistake, correct)}?`
-        });
-        return; // Don't call API
-      }
+    // Check if domain is a known typo
+    if (domainTypos[domain]) {
+      const suggestedEmail = `${localPart}@${domainTypos[domain]}`;
+      setEmailValidationState({
+        loading: false,
+        valid: false,
+        error: `Did you mean ${suggestedEmail}?`,
+        suggestion: suggestedEmail
+      });
+      return;
     }
     
     // Basic format validation
@@ -248,9 +255,10 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setEmailValidationState({
         loading: false,
         valid: false,
-        error: 'Please enter a valid email format'
+        error: 'Please enter a valid email format',
+        suggestion: undefined
       });
-      return; // Don't call API
+      return;
     }
     
     // Check for spaces
@@ -258,15 +266,15 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setEmailValidationState({
         loading: false,
         valid: false,
-        error: 'Email cannot contain spaces'
+        error: 'Email cannot contain spaces',
+        suggestion: undefined
       });
-      return; // Don't call API
+      return;
     }
     
     // All client-side checks passed, now call API
     setEmailValidationState({ loading: true, valid: null, error: null });
     
-    // Create email validation config
     const emailConfig = {
       id: 'email',
       validation: {
@@ -281,7 +289,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const result = await validateField(emailConfig, email, sessionData);
       
-      // Track last validated
+      // Track this as the last validated value
       setLastValidatedValues(prev => ({
         ...prev,
         email: email
@@ -357,6 +365,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         error: 'Validation failed'
       });
     }
+  };
+
+  // Add this handler for applying suggestion
+  const applySuggestion = (suggestedEmail: string) => {
+    handleInputChange('email', suggestedEmail);
+    setEmailValidationState({
+      loading: false,
+      valid: null,
+      error: null,
+      suggestion: undefined
+    });
+    // Trigger validation with corrected email
+    handleEmailValidation(suggestedEmail);
   };
 
   const canProceed = () => {
@@ -680,7 +701,23 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     )}
                   </div>
                   {emailValidationState.error && (
-                    <p className="mt-1 text-sm text-red-600">{emailValidationState.error}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {emailValidationState.suggestion ? (
+                        <span>
+                          Did you mean{' '}
+                          <button
+                            type="button"
+                            onClick={() => applySuggestion(emailValidationState.suggestion!)}
+                            className="underline font-semibold hover:text-red-700 cursor-pointer"
+                          >
+                            {emailValidationState.suggestion}
+                          </button>
+                          ?
+                        </span>
+                      ) : (
+                        emailValidationState.error
+                      )}
+                    </p>
                   )}
                   
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
