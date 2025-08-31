@@ -225,7 +225,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       '.con': '.com',
       '.cpm': '.com',
       '.comm': '.com',
-      '.co': '.com', // Careful with this one as .co is valid
       '.ney': '.net',
       '.orf': '.org',
       '.orgg': '.org'
