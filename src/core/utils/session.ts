@@ -4,12 +4,9 @@ interface SessionData {
   landing_page: string;
   referrer: string;
   utm_params: Record<string, string>;
-  validationData: {
-    zip?: any;
-    email?: any;
-    phone?: any;
-  };
-  quizAnswers: Record<string, any>;
+  validations: Record<string, any>; // Store ANY validation response
+  quiz_answers: Record<string, any>;
+  metadata: Record<string, any>; // Any additional data
 }
 
 export const captureUTMParams = (): Record<string, string> => {
@@ -32,15 +29,17 @@ export const generateSessionId = (): string => {
   return `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-export const storeValidationData = (type: 'zip' | 'email' | 'phone', data: any) => {
+// Store entire validation response as-is
+export const storeValidation = (key: string, response: any) => {
   const sessionData = getSessionData();
   
-  if (!sessionData.validationData) {
-    sessionData.validationData = {};
+  if (!sessionData.validations) {
+    sessionData.validations = {};
   }
   
-  sessionData.validationData[type] = {
-    ...data,
+  // Store ENTIRE response without modification
+  sessionData.validations[key] = {
+    ...response,
     validated_at: new Date().toISOString()
   };
   
@@ -60,16 +59,26 @@ export const getSessionData = (): SessionData => {
     landing_page: window.location.pathname,
     referrer: document.referrer || 'direct',
     utm_params: extractUTMParams(),
-    validationData: {},
-    quizAnswers: {}
+    validations: {},
+    quiz_answers: {},
+    metadata: {}
   };
   
   sessionStorage.setItem('session_data', JSON.stringify(newSession));
   return newSession;
 };
 
-export const getAllSessionData = () => {
-  return getSessionData();
+// Get all data for submission
+export const getCompleteSessionData = () => {
+  const sessionData = getSessionData();
+  
+  // Return EVERYTHING as flat object for submission
+  return {
+    ...sessionData,
+    ...sessionData.validations, // Spread all validation responses
+    ...sessionData.quiz_answers, // Spread all quiz answers
+    submitted_at: new Date().toISOString()
+  };
 };
 
 export const initializeSession = (): void => {
