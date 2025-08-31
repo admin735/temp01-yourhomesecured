@@ -80,7 +80,20 @@ export const storeFormField = (field: string, value: any) => {
 export const getSessionData = (): SessionData => {
   const stored = sessionStorage.getItem('session_data');
   if (stored) {
-    return JSON.parse(stored);
+    const data = JSON.parse(stored);
+    
+    // If old format with utm_params object, migrate to flat structure
+    if (data.utm_params && !data.utm_source) {
+      data.utm_source = data.utm_params.utm_source || '';
+      data.utm_medium = data.utm_params.utm_medium || '';
+      data.utm_campaign = data.utm_params.utm_campaign || '';
+      data.utm_term = data.utm_params.utm_term || '';
+      data.utm_content = data.utm_params.utm_content || '';
+      delete data.utm_params; // Remove the nested object
+      sessionStorage.setItem('session_data', JSON.stringify(data));
+    }
+    
+    return data;
   }
   
   // Extract UTM parameters
@@ -93,7 +106,7 @@ export const getSessionData = (): SessionData => {
     landing_page: window.location.pathname,
     referrer: document.referrer || 'direct',
     
-    // UTM parameters directly in session_data
+    // UTM parameters at root level
     utm_source: params.get('utm_source') || '',
     utm_medium: params.get('utm_medium') || '',
     utm_campaign: params.get('utm_campaign') || '',
