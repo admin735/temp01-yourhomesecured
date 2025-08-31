@@ -54,9 +54,21 @@ export const generateSessionId = (): string => {
 
 // Store validation responses as-is
 export const storeValidation = (type: string, response: any) => {
+  console.log('storeValidation called with:', type, response);
   const sessionData = getSessionData();
+  
+  if (!sessionData.validations) {
+    sessionData.validations = {};
+  }
+  
   sessionData.validations[type] = response;
+  console.log('About to save to sessionStorage:', sessionData);
+  
   sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+  
+  // Verify it was saved
+  const saved = JSON.parse(sessionStorage.getItem('session_data'));
+  console.log('Actually saved:', saved);
 };
 
 // Store quiz answer

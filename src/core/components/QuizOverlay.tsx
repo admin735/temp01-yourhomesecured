@@ -155,6 +155,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       // Execute validation and handle response
       try {
         const result = await validateField(configStep, value, sessionData);
+        console.log('QuizOverlay received:', result);
         
         // Update state when response arrives
         setValidationState({
@@ -165,8 +166,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         
         // Store entire validation response if valid
         if (result.valid) {
-          console.log('ZIP validation successful, storing:', result);
+          console.log('About to store validation with:', result);
           storeValidation('zip', result);
+          // Check immediately after storing
+          const stored = JSON.parse(sessionStorage.getItem('session_data'));
+          console.log('Session storage after store:', stored);
         }
       } catch (error) {
         // Handle any unexpected errors
