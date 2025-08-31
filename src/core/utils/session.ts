@@ -4,9 +4,15 @@ interface SessionData {
   timestamp: string;
   landing_page: string;
   referrer: string;
-  utm_params: Record<string, string>;
   
-  // Store ALL data from validations/enrichments
+  // UTM parameters at root level
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  utm_term: string;
+  utm_content: string;
+  
+  // Validations and answers
   validations: {
     zip?: any;      // Full ZIP validation response
     phone?: any;    // Full phone validation response
@@ -14,22 +20,8 @@ interface SessionData {
     qualification?: any; // Qualification API response
   };
   
-  // Quiz answers (raw user input)
-  quiz_answers: {
-    zip?: string;
-    property_type?: string;
-    ownership_status?: string;
-    timeline?: string;
-    [key: string]: any; // Allow any quiz question
-  };
-  
-  // Form data
-  form_data: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    email?: string;
-  };
+  quiz_answers: Record<string, any>;
+  form_data: Record<string, any>;
 }
 
 export const captureUTMParams = (): Record<string, string> => {
@@ -91,13 +83,23 @@ export const getSessionData = (): SessionData => {
     return JSON.parse(stored);
   }
   
-  // Initialize if not exists
+  // Extract UTM parameters
+  const params = new URLSearchParams(window.location.search);
+  
+  // Initialize with UTMs at root level
   const newSession: SessionData = {
     session_id: generateSessionId(),
     timestamp: new Date().toISOString(),
     landing_page: window.location.pathname,
     referrer: document.referrer || 'direct',
-    utm_params: extractUTMParams(),
+    
+    // UTM parameters directly in session_data
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+    
     validations: {},
     quiz_answers: {},
     form_data: {}
@@ -107,30 +109,12 @@ export const getSessionData = (): SessionData => {
   return newSession;
 };
 
-// Get complete payload for submission
 export const getFinalSubmissionPayload = () => {
   const sessionData = getSessionData();
   
+  // Everything is already at root level, just spread it
   return {
-    // Session metadata
-    session: {
-      id: sessionData.session_id,
-      timestamp: sessionData.timestamp,
-      landing_page: sessionData.landing_page,
-      referrer: sessionData.referrer,
-      utm_params: sessionData.utm_params
-    },
-    
-    // User inputs
-    user_data: {
-      ...sessionData.form_data,
-      quiz_answers: sessionData.quiz_answers
-    },
-    
-    // All enrichment data from APIs
-    enrichment_data: sessionData.validations,
-    
-    // Submission metadata
+    ...sessionData,
     submitted_at: new Date().toISOString(),
     user_agent: navigator.userAgent
   };
