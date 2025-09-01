@@ -952,7 +952,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         )}
         </div>
       </div>
-      </div>
 
       {/* Exit Confirmation Modal */}
       {showExitModal && (
