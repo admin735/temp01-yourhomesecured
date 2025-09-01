@@ -365,8 +365,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      // Call YOUR backend validation
-      const response = await fetch('/.netlify/functions/validate-phone', {
+      // Using VITE_PHONE_VALIDATOR from .env.local
+      const response = await fetch(config.api.phoneValidation, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -428,8 +428,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      // Call Twilio to send OTP
-      const response = await fetch('/.netlify/functions/send-otp', {
+      // Using VITE_SEND_OTP from .env.local
+      const response = await fetch(config.api.sendOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -452,6 +452,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         alert('Failed to send verification code. Please try again.');
       }
     } catch (error) {
+      console.error('Send OTP error:', error);
       alert('Failed to send verification code. Please try again.');
     } finally {
       setSendingOTP(false);
@@ -473,7 +474,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      const response = await fetch('/.netlify/functions/verify-otp', {
+      // Using VITE_VERIFY_OTP from .env.local
+      const response = await fetch(config.api.verifyOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
