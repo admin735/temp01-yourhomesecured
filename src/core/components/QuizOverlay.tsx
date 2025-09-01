@@ -407,6 +407,155 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     handleEmailValidation(suggestedEmail);
   };
 
+  // Phone Validation Handler
+  const handlePhoneValidation = async (phone: string) => {
+    const cleaned = phone.replace(/\D/g, '');
+    
+    if (cleaned.length !== 10) return;
+    if (phone === lastValidatedValues.phone) return;
+    
+    setPhoneValidationState({ loading: true, status: 'idle' });
+    
+    try {
+      const sessionData = getSessionData();
+      
+      // Call YOUR backend validation
+      const response = await fetch('/.netlify/functions/validate-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: cleaned,
+          session_id: sessionData.session_id
+        })
+      });
+      
+      const result = await response.json();
+      const data = result.data;
+      const customMessage = result.message;
+      
+      setLastValidatedValues(prev => ({ ...prev, phone }));
+      
+      if (data.status === 'valid') {
+        if (data.otp_required) {
+          // Mobile/Toll-free: Show popup to get user consent
+          setPhoneValidationState({ 
+            loading: false, 
+            status: 'needs_otp',
+            message: customMessage || `${data.phone_type === 'CELL_PHONE' ? 'Mobile' : 'Toll-free'} number - verification required`,
+            phoneType: data.phone_type
+          });
+          setShowValidationPopup(true);
+        } else {
+          // Landline/VOIP/Unknown: Immediately valid
+          setPhoneValidationState({ 
+            loading: false, 
+            status: 'valid',
+            message: customMessage || 'Phone number verified',
+            phoneType: data.phone_type
+          });
+          storeValidation('phone', data);
+        }
+      } else {
+        // Invalid/Fake number
+        setPhoneValidationState({ 
+          loading: false, 
+          status: 'invalid',
+          message: customMessage || 'Please enter a valid phone number',
+          phoneType: data.phone_type
+        });
+      }
+    } catch (error) {
+      console.error('Phone validation error:', error);
+      setPhoneValidationState({ 
+        loading: false, 
+        status: 'invalid', 
+        message: 'Unable to validate phone number. Please try again.' 
+      });
+    }
+  };
+
+  // Send OTP Handler
+  const handleSendOTP = async () => {
+    const cleaned = quizData.phone.replace(/\D/g, '');
+    setSendingOTP(true);
+    
+    try {
+      const sessionData = getSessionData();
+      
+      // Call Twilio to send OTP
+      const response = await fetch('/.netlify/functions/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: cleaned,
+          session_id: sessionData.session_id
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setShowValidationPopup(false); // Close consent popup
+        setShowOTPModal(true); // Open OTP entry modal
+        setPhoneValidationState(prev => ({
+          ...prev,
+          status: 'otp_sent',
+          message: 'Verification code sent'
+        }));
+      } else {
+        alert('Failed to send verification code. Please try again.');
+      }
+    } catch (error) {
+      alert('Failed to send verification code. Please try again.');
+    } finally {
+      setSendingOTP(false);
+    }
+  };
+
+  // Cancel Validation Handler
+  const handleCancelValidation = () => {
+    setShowValidationPopup(false);
+    // Reset phone field so user can try a different number
+    setPhoneValidationState({ loading: false, status: 'idle' });
+    handleInputChange('phone', ''); // Clear the phone field
+  };
+
+  // Verify OTP Handler
+  const handleVerifyOTP = async (code: string): Promise<{ success: boolean; message?: string }> => {
+    const cleaned = quizData.phone.replace(/\D/g, '');
+    
+    try {
+      const sessionData = getSessionData();
+      
+      const response = await fetch('/.netlify/functions/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: cleaned,
+          otp: code,
+          session_id: sessionData.session_id
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success || result.status === 'valid') {
+        setPhoneValidationState({ 
+          loading: false, 
+          status: 'valid',
+          message: 'Phone verified successfully'
+        });
+        setShowOTPModal(false);
+        storeValidation('phone', { status: 'valid', verified: true, ...result });
+        return { success: true };
+      }
+      
+      return { success: false, message: result.message || 'Invalid code' };
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      return { success: false, message: 'Verification failed' };
+    }
+  };
   const canProceed = () => {
     if (currentStep === 0) {
       return validationState.valid === true;
