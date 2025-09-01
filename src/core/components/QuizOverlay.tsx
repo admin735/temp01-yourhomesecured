@@ -340,60 +340,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   };
 
-  const handlePhoneValidation = async (phone: string) => {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length !== 10) return;
-    
-    // Skip if value hasn't changed since last validation
-    if (phone === lastValidatedValues.phone) {
-      console.log('Phone unchanged, skipping validation');
-      return;
-    }
-    
-    // Set loading immediately
-    setPhoneValidationState({ loading: true, status: null, error: null });
-    
-    // Create phone validation config
-    const phoneConfig = {
-      id: 'phone',
-      validation: {
-        apiEndpoint: config.api.phoneValidation,
-        mockDelay: 1500,
-        message: 'Please enter a valid phone number'
-      }
-    };
-    
-    const sessionData = getSessionData();
-    
-    try {
-      // Execute validation
-      const result = await validateField(phoneConfig, phone, sessionData);
-      
-      // Track this as the last validated value
-      setLastValidatedValues(prev => ({
-        ...prev,
-        phone: phone
-      }));
-      
-      setPhoneValidationState({
-        loading: false,
-        status: result.valid ? 'valid' : 'invalid',
-        error: result.error
-      });
-      
-      // Store entire validation response if valid
-      if (result.valid) {
-        storeValidation('phone', result);
-      }
-    } catch (error) {
-      setPhoneValidationState({
-        loading: false,
-        status: 'invalid',
-        error: 'Validation failed'
-      });
-    }
-  };
-
   // Add this handler for applying suggestion
   const applySuggestion = (suggestedEmail: string) => {
     handleInputChange('email', suggestedEmail);
