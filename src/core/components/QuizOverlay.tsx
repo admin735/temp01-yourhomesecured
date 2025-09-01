@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, AlertCircle, Shield } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
 import { getSessionData, storeQuizAnswer, storeValidation, storeFormField, getFinalSubmissionPayload } from '../utils/session';
 import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
+import { OTPModal } from './OTPModal';
+import { PhoneValidationPopup } from './PhoneValidationPopup';
 
 interface EmailValidationState {
   loading: boolean;
@@ -45,8 +47,20 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     error: null
   });
   const [showExitModal, setShowExitModal] = useState(false);
-  const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
+  const [lastValidatedValues, setLastValidatedValues] = useState<{
+    email?: string;
+    phone?: string;
+    zipCode?: string;
+  }>({});
   const [showValidationPopup, setShowValidationPopup] = useState(false);
+  const [phoneValidationState, setPhoneValidationState] = useState<{
+    loading: boolean;
+    status: 'idle' | 'valid' | 'invalid' | 'needs_otp' | 'otp_sent';
+    message?: string;
+    phoneType?: string;
+  }>({ loading: false, status: 'idle' });
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [sendingOTP, setSendingOTP] = useState(false);
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
