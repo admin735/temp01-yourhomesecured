@@ -387,7 +387,22 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
-      const result = await response.json();
+      // Check if response is valid before parsing JSON
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error(`Expected JSON response, got: ${contentType}`);
+      }
+      
+      const responseText = await response.text();
+      if (!responseText.trim()) {
+        throw new Error('Empty response received from phone validation API');
+      }
+      
+      const result = JSON.parse(responseText);
       const data = result.data;
       const customMessage = result.message;
       
