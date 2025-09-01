@@ -53,12 +53,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     zipCode?: string;
   }>({});
   const [showValidationPopup, setShowValidationPopup] = useState(false);
-  const [phoneValidationState, setPhoneValidationState] = useState<{
-    loading: boolean;
-    status: 'idle' | 'valid' | 'invalid' | 'needs_otp' | 'otp_sent';
-    message?: string;
-    phoneType?: string;
-  }>({ loading: false, status: 'idle' });
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   
