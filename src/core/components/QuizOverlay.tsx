@@ -650,8 +650,10 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" tabIndex={-1}>
+    <>
+      {/* Main quiz modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl" tabIndex={-1}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
@@ -831,22 +833,24 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     )}
                   </div>
                   
-                  {/* ADD THIS TEST BUTTON */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('Test button clicked');
-                      setShowValidationPopup(true);
-                      console.log('showValidationPopup set to true');
-                    }}
-                    className="mt-2 bg-purple-500 text-white px-4 py-2 rounded text-sm"
-                  >
-                    Test Popup
-                  </button>
+                  {/* Test Phone Verification Popup Button */}
+                  <div className="p-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        console.log('Test button clicked');
+                        console.log('Current state:', { showValidationPopup, showOTPModal });
+                        setShowValidationPopup(true);
+                      }}
+                      className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg w-full font-semibold"
+                    >
+                      🧪 Test Phone Verification Popup
+                    </button>
+                  </div>
                   
                   {/* Error message */}
-                  {phoneValidationState.status === 'invalid' && phoneValidationState.error && (
-                    <p className="mt-1 text-sm text-red-600">{phoneValidationState.error}</p>
+                  {phoneValidationState.status === 'invalid' && phoneValidationState.message && (
+                    <p className="mt-1 text-sm text-red-600">{phoneValidationState.message}</p>
                   )}
                   <div className="relative">
                     <input
@@ -946,6 +950,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             </button>
           </div>
         )}
+        </div>
+      </div>
       </div>
 
       {/* Exit Confirmation Modal */}
@@ -976,6 +982,24 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           </div>
         </div>
       )}
-    </div>
+
+      {/* Phone Validation Popup - Outside main modal */}
+      <PhoneValidationPopup
+        isOpen={showValidationPopup}
+        phoneNumber="(555) 123-4567"
+        onConfirm={handleSendOTP}
+        onCancel={handleCancelValidation}
+        loading={sendingOTP}
+      />
+
+      {/* OTP Modal - Outside main modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        phoneNumber="(555) 123-4567"
+        onVerify={handleVerifyOTP}
+        onResend={handleSendOTP}
+        onClose={() => setShowOTPModal(false)}
+      />
+    </>
   );
 };
