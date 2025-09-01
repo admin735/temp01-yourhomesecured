@@ -46,6 +46,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   });
   const [showExitModal, setShowExitModal] = useState(false);
   const [lastValidatedValues, setLastValidatedValues] = useState<Record<string, string>>({});
+  const [showValidationPopup, setShowValidationPopup] = useState(false);
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
@@ -726,6 +727,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
                   </div>
+                  
+                  {/* ADD THIS TEST BUTTON */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Test button clicked');
+                      setShowValidationPopup(true);
+                      console.log('showValidationPopup set to true');
+                    }}
+                    className="mt-2 bg-purple-500 text-white px-4 py-2 rounded text-sm"
+                  >
+                    Test Popup
+                  </button>
                   
                   {/* Error message */}
                   {phoneValidationState.status === 'invalid' && phoneValidationState.error && (
