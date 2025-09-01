@@ -27,6 +27,18 @@ interface QuizOverlayProps {
 }
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
+  // Debug environment variables
+  useEffect(() => {
+    console.log('Environment variables check:');
+    console.log('VITE_PHONE_VALIDATOR:', import.meta.env.VITE_PHONE_VALIDATOR);
+    console.log('VITE_SEND_OTP:', import.meta.env.VITE_SEND_OTP);
+    console.log('VITE_VERIFY_OTP:', import.meta.env.VITE_VERIFY_OTP);
+    console.log('Config values:');
+    console.log('phoneValidation:', config.api.phoneValidation);
+    console.log('sendOTP:', config.api.sendOTP);
+    console.log('verifyOTP:', config.api.verifyOTP);
+  }, []);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isLoadingStep, setIsLoadingStep] = useState(false);
