@@ -445,7 +445,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       const result = await response.json();
       
-      if (result.success) {
+      // FIX: Check for success in the data object, not at root level
+      if (result.data?.success || result.data?.status === 'sent') {
         setShowValidationPopup(false);
         setShowOTPModal(true);
         setPhoneValidationState(prev => ({
