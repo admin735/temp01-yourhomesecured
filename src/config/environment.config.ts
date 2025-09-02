@@ -24,8 +24,8 @@ const getConfig = (): EnvironmentConfig => {
       zipValidation: import.meta.env.VITE_ZIP_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/8ab1e253-7d13-4307-958a-b27ede0aa0cb',
       emailValidation: import.meta.env.VITE_EMAIL_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/6b653c03-3862-40da-b899-6041353c4fd0',
       phoneValidation: import.meta.env.VITE_PHONE_VALIDATOR || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/87b9497a-68b1-43b1-9640-4820e1f02881',
-      sendOTP: import.meta.env.VITE_SEND_OTP || '',
-      verifyOTP: import.meta.env.VITE_VERIFY_OTP || '',
+      sendOTP: import.meta.env.VITE_SEND_OTP || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/108b519b-2a17-4a7e-8f70-4dd212a25395',
+      verifyOTP: import.meta.env.VITE_VERIFY_OTP || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/03ecfad3-ef68-444e-bac7-f7c33b3f417f',
       qualification: import.meta.env.VITE_QUALIFICATION_API || 'https://n8n-s08bs-u37698.vm.elestio.app/webhook/7415d839-ddf2-4708-a848-a565efeefbbe'
     },
     features: {
