@@ -93,9 +93,9 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
       
       // Handle new response format for validation endpoints
       if (step.id === 'zip' || step.id === 'email' || step.id === 'phone') {
-        // Check if we have the new response format
-        if ('status' in data && typeof data.status === 'string') {
-          const normalizedStatus = data.status.trim().toLowerCase();
+        // Check if we have the new response format with nested status
+        if (data && typeof data === 'object' && 'data' in data && typeof data.data === 'object' && 'status' in data.data && typeof data.data.status === 'string') {
+          const normalizedStatus = data.data.status.trim().toLowerCase();
           if (normalizedStatus === 'valid') {
             const result = {
               valid: true,
@@ -117,7 +117,7 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
             return result;
           }
         } else {
-          // Handle cases where 'status' is missing or not a string
+          // Handle cases where 'status' is missing or not a string, or data.data is malformed
           const result = {
             valid: false,
             error: 'Validation failed: API response status is malformed or missing.',
