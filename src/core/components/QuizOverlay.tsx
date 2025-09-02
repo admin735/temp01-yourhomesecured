@@ -495,7 +495,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-     // Use config.api.verifyOTP (which pulls from VITE_VERIFY_OTP)
+      // Use config.api.verifyOTP (which pulls from VITE_VERIFY_OTP)
       const response = await fetch(config.api.verifyOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -506,17 +506,17 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
-     if (!response.ok) {
-       throw new Error(`HTTP error! status: ${response.status}`);
-     }
-     
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
       
-      if (result.success || result.status === 'valid') {
+      // Check for "approved" status as you mentioned
+      if (result.success || result.status === 'approved' || result.status === 'valid') {
         setPhoneValidationState({ 
           loading: false, 
           status: 'valid',
-         error: null,
           message: 'Phone verified successfully'
         });
         setShowOTPModal(false);
