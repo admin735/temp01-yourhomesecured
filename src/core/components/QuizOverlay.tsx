@@ -445,8 +445,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       const result = await response.json();
       
+      console.log('Send OTP response:', result);
+      console.log('Checking success:', result.data?.success, result.data?.status);
+      
       // FIX: Check for success in the data object, not at root level
       if (result.data?.success || result.data?.status === 'sent') {
+        console.log('Success condition met, showing OTP modal');
         setShowValidationPopup(false);
         setShowOTPModal(true);
         setPhoneValidationState(prev => ({
@@ -456,6 +460,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           message: 'Verification code sent'
         }));
       } else {
+        console.log('Success condition NOT met');
         alert('Failed to send verification code. Please try again.');
       }
     } catch (error) {
@@ -983,7 +988,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       {/* Phone Validation Popup - Outside main modal */}
       <PhoneValidationPopup
         isOpen={showValidationPopup}
-        phoneNumber="(555) 123-4567"
+        phoneNumber={quizData.phone}
         onConfirm={handleSendOTP}
         onCancel={handleCancelValidation}
         loading={sendingOTP}
@@ -992,7 +997,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       {/* OTP Modal - Outside main modal */}
       <OTPModal
         isOpen={showOTPModal}
-        phoneNumber="(555) 123-4567"
+        phoneNumber={quizData.phone}
         onVerify={handleVerifyOTP}
         onResend={handleSendOTP}
         onClose={() => setShowOTPModal(false)}
