@@ -29,10 +29,15 @@ interface QuizOverlayProps {
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
   // Debug API endpoints
   useEffect(() => {
-    console.log('API Endpoints Check:');
+    console.log('=== ALL ENDPOINTS CHECK ===');
+    console.log('leadSubmit:', config.api.leadSubmit);
+    console.log('zipValidation:', config.api.zipValidation);
+    console.log('emailValidation:', config.api.emailValidation);
     console.log('phoneValidation:', config.api.phoneValidation);
     console.log('sendOTP:', config.api.sendOTP);
     console.log('verifyOTP:', config.api.verifyOTP);
+    console.log('qualification:', config.api.qualification);
+    console.log('===========================');
   }, []);
 
   const [currentStep, setCurrentStep] = useState(0);
