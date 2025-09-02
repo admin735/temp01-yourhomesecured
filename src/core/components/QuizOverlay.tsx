@@ -56,6 +56,21 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   
+  // Add autofill detection for email validation
+  useEffect(() => {
+    if (currentStep === steps.length - 1) { // Only on contact form step
+      const checkAutofill = setTimeout(() => {
+        // Check if email has value but hasn't been validated
+        if (quizData.email && emailValidationState.valid === null) {
+          console.log('Autofilled email detected, validating...');
+          handleEmailValidation(quizData.email);
+        }
+      }, 500); // Wait for browser autofill to complete
+      
+      return () => clearTimeout(checkAutofill);
+    }
+  }, [currentStep]);
+  
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
