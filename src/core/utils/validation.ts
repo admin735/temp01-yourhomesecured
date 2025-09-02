@@ -1,4 +1,4 @@
-import { config } from '../../config/environment.config';
+import { config } from '../config/environment.config';
 import { reportError } from './errorHandler';
 import { getSessionData, storeValidation } from './session';
 
@@ -52,12 +52,32 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
     };
   }
 
-  if (step.validation?.apiEndpoint) {
+  // Determine the correct API endpoint based on step ID
+  let apiEndpoint = step.validation?.apiEndpoint;
+  
+  if (step.id === 'zip') {
+    apiEndpoint = config.api.zipValidation;
+  } else if (step.id === 'email') {
+    apiEndpoint = config.api.emailValidation;
+  } else if (step.id === 'phone') {
+    apiEndpoint = config.api.phoneValidation;
+  }
+  
+  if (!apiEndpoint) {
+    console.error(`No endpoint configured for ${step.id} validation`);
+    return { 
+      valid: false, 
+      error: 'Validation not configured',
+      data: null 
+    };
+  }
+  
+  if (apiEndpoint) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(step.validation.apiEndpoint, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -118,7 +138,7 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
           message: error.name === 'AbortError' ? 'Validation timeout' : error.message,
           details: {
             field: step.id,
-            endpoint: step.validation.apiEndpoint
+            endpoint: apiEndpoint
           }
         });
       }
