@@ -93,7 +93,96 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
       
       // Handle new response format for validation endpoints
       if (step.id === 'zip' || step.id === 'email' || step.id === 'phone') {
-        if (data.status === 'valid') {
+        // Check if we have the new response format
+        if ('status' in data) {
+          if (data.status === 'valid') {
+            const result = {
+              valid: true,
+              error: null,
+              data: data.data || null,
+              ...data
+            };
+            console.log('Validation result for', step.id, ':', result);
+            return result;
+          } else {
+            // Treat ANY non-'valid' status as invalid
+            const result = {
+              valid: false,
+              error: data.message || 'Validation failed',
+              data: data.data || null,
+              ...data
+            };
+            console.log('Validation result for', step.id, ':', result);
+            return result;
+          }
+        }
+      } else {
+        // Original format for other endpoints
+        if (data.response === 'success') {
+          return { valid: true, data: data.additionalData };
+        } else {
+          return { valid: false, error: data.message || 'Validation failed' };
+        }
+      }
+    } catch (error: any) {
+      // Report to error webhook if available
+      if (config.api.errorReporting) {
+        await reportError(error as Error, {
+          type: `${step.id}_validation_timeout`,
+          message: error.name === 'AbortError' ? 'Validation timeout' : error.message,
+          details: {
+            field: step.id,
+            endpoint: apiEndpoint
+          }
+        });
+      }
+      
+      // Fall back to local validation
+      await sleep(step.validation?.mockDelay || 1500);
+      return validateLocally(step, value);
+    }
+  } else {
+    // No API endpoint configured - use local validation
+    await sleep(step.validation?.mockDelay || 1500);
+    return validateLocally(step, value);
+  }
+};
+
+const validateLocally = (step: any, value: any) => {
+  if (step.id === 'zip') {
+    const valid = validateZIP(value);
+    return {
+      valid,
+      error: valid ? null : step.validation?.message || 'Please enter a valid ZIP code'
+    };
+  }
+  
+  if (step.id === 'email') {
+    const valid = validateEmail(value);
+    return {
+      valid,
+      error: valid ? null : 'Please enter a valid email address'
+    };
+  }
+  
+  if (step.id === 'phone') {
+    const valid = validatePhone(value);
+    return {
+      valid,
+      error: valid ? null : 'Please enter a valid phone number'
+    };
+  }
+  
+  if (step.validation?.pattern) {
+    const valid = step.validation.pattern.test(value);
+    return {
+      valid,
+      error: valid ? null : step.validation.message
+    };
+  }
+  
+  return { valid: true };
+};
           const result = { 
             valid: true, 
             error: null,
