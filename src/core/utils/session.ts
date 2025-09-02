@@ -25,10 +25,29 @@ export const captureUTMParams = (): Record<string, string> => {
   const params = new URLSearchParams(window.location.search);
   const utm: Record<string, string> = {};
   
-  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid'].forEach(key => {
+  // Capture standard UTM parameters
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(key => {
     const value = params.get(key);
     if (value) utm[key] = value;
   });
+  
+  // Capture click IDs
+  ['fbclid', 'gclid'].forEach(key => {
+    const value = params.get(key);
+    if (value) {
+      utm.click_id = value;
+      utm.click_id_type = key;
+    }
+  });
+  
+  // Store UTMs immediately in session
+  try {
+    const sessionData = getSessionData();
+    sessionData.tracking = { ...sessionData.tracking, ...utm };
+    sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+  } catch (e) {
+    console.log('Session storage unavailable for UTM capture');
+  }
   
   return utm;
 };
@@ -44,40 +63,71 @@ export const generateSessionId = (): string => {
 // Store validation responses as-is
 export const storeValidation = (type: string, response: any) => {
   console.log('storeValidation called with:', type, response);
-  const sessionData = getSessionData();
   
-  if (!sessionData.validations) {
-    sessionData.validations = {};
+  try {
+    const sessionData = getSessionData();
+    
+    if (!sessionData.validations) {
+      sessionData.validations = {};
+    }
+    
+    sessionData.validations[type] = response;
+    console.log('About to save to sessionStorage:', sessionData);
+    
+    try {
+      sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+      
+      // Verify it was saved
+      const saved = JSON.parse(sessionStorage.getItem('session_data') || '{}');
+      console.log('Actually saved:', saved);
+    } catch (storageError) {
+      console.log(`Session storage unavailable for ${type} validation`);
+    }
+  } catch (error) {
+    console.error('Error storing validation:', error);
   }
-  
-  sessionData.validations[type] = response;
-  console.log('About to save to sessionStorage:', sessionData);
-  
-  sessionStorage.setItem('session_data', JSON.stringify(sessionData));
-  
-  // Verify it was saved
-  const saved = JSON.parse(sessionStorage.getItem('session_data'));
-  console.log('Actually saved:', saved);
 };
 
 // Store quiz answer
 export const storeQuizAnswer = (question: string, answer: any) => {
-  const sessionData = getSessionData();
-  sessionData.quiz_answers[question] = answer;
-  sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+  try {
+    const sessionData = getSessionData();
+    sessionData.quiz_answers[question] = answer;
+    
+    try {
+      sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+    } catch (storageError) {
+      console.log(`Session storage unavailable for quiz answer: ${question}`);
+    }
+  } catch (error) {
+    console.error('Error storing quiz answer:', error);
+  }
 };
 
 // Store form field
 export const storeFormField = (field: string, value: any) => {
-  const sessionData = getSessionData();
-  sessionData.form_data[field] = value;
-  sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+  try {
+    const sessionData = getSessionData();
+    sessionData.form_data[field] = value;
+    
+    try {
+      sessionStorage.setItem('session_data', JSON.stringify(sessionData));
+    } catch (storageError) {
+      console.log(`Session storage unavailable for form field: ${field}`);
+    }
+  } catch (error) {
+    console.error('Error storing form field:', error);
+  }
 };
 
 export const getSessionData = (): SessionData => {
-  const stored = sessionStorage.getItem('session_data');
-  if (stored) {
-    return JSON.parse(stored);
+  try {
+    const stored = sessionStorage.getItem('session_data');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.log('Session storage unavailable, creating new session');
   }
   
   const params = new URLSearchParams(window.location.search);
@@ -116,7 +166,12 @@ export const getSessionData = (): SessionData => {
     form_data: {}
   };
   
-  sessionStorage.setItem('session_data', JSON.stringify(newSession));
+  try {
+    sessionStorage.setItem('session_data', JSON.stringify(newSession));
+  } catch (error) {
+    console.log('Session storage unavailable for new session');
+  }
+  
   return newSession;
 };
 
@@ -150,8 +205,15 @@ export const initializeSession = (): void => {
   // This will create session data if it doesn't exist
   getSessionData();
   
+  // Capture UTM parameters on initialization
   const utmParams = captureUTMParams();
+  
+  // Also store in separate utm_params for backward compatibility
   if (Object.keys(utmParams).length > 0) {
-    sessionStorage.setItem('utm_params', JSON.stringify(utmParams));
+    try {
+      sessionStorage.setItem('utm_params', JSON.stringify(utmParams));
+    } catch (error) {
+      console.log('Session storage unavailable for UTM params');
+    }
   }
 };
