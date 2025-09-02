@@ -55,6 +55,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
+
+  // Store answers using config IDs
+  const [quizData, setQuizData] = useState({
+    zip: '',
+    home_status: '',
+    install_pref: '',
+    intent_timing: '',
+    existing_system: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: ''
+  });
   
   // Helper function to detect autofilled phone
   const isPhoneAutofilled = () => {
@@ -111,19 +124,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return true;
     }
   };
-
-  // Store answers using config IDs
-  const [quizData, setQuizData] = useState({
-    zip: '',
-    home_status: '',
-    install_pref: '',
-    intent_timing: '',
-    existing_system: '',
-    first_name: '',
-    last_name: '',
-    phone: '',
-    email: ''
-  });
 
   // Build steps from config
   const steps = [
