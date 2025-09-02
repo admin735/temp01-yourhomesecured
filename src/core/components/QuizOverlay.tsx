@@ -372,12 +372,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     if (cleaned.length !== 10) return;
     if (phone === lastValidatedValues.phone) return;
     
-    setPhoneValidationState({ loading: true, status: 'idle' });
+   setPhoneValidationState({ loading: true, status: null, error: null });
     
     try {
       const sessionData = getSessionData();
       
-      // Using VITE_PHONE_VALIDATOR from .env.local
+     // Use config.api.phoneValidation (which pulls from VITE_PHONE_VALIDATOR)
       const response = await fetch(config.api.phoneValidation, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -387,22 +387,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
-      // Check if response is valid before parsing JSON
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+       throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`Expected JSON response, got: ${contentType}`);
-      }
-      
-      const responseText = await response.text();
-      if (!responseText.trim()) {
-        throw new Error('Empty response received from phone validation API');
-      }
-      
-      const result = JSON.parse(responseText);
+     const result = await response.json();
       const data = result.data;
       const customMessage = result.message;
       
@@ -410,29 +399,29 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       if (data.status === 'valid') {
         if (data.otp_required) {
-          // Mobile/Toll-free: Show popup to get user consent
           setPhoneValidationState({ 
             loading: false, 
             status: 'needs_otp',
+           error: null,
             message: customMessage || `${data.phone_type === 'CELL_PHONE' ? 'Mobile' : 'Toll-free'} number - verification required`,
             phoneType: data.phone_type
           });
           setShowValidationPopup(true);
         } else {
-          // Landline/VOIP/Unknown: Immediately valid
           setPhoneValidationState({ 
             loading: false, 
             status: 'valid',
+           error: null,
             message: customMessage || 'Phone number verified',
             phoneType: data.phone_type
           });
           storeValidation('phone', data);
         }
       } else {
-        // Invalid/Fake number
         setPhoneValidationState({ 
           loading: false, 
           status: 'invalid',
+         error: null,
           message: customMessage || 'Please enter a valid phone number',
           phoneType: data.phone_type
         });
@@ -442,6 +431,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setPhoneValidationState({ 
         loading: false, 
         status: 'invalid', 
+       error: null,
         message: 'Unable to validate phone number. Please try again.' 
       });
     }
@@ -455,7 +445,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      // Using VITE_SEND_OTP from .env.local
+     // Use config.api.sendOTP (which pulls from VITE_SEND_OTP)
       const response = await fetch(config.api.sendOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -465,14 +455,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
+     if (!response.ok) {
+       throw new Error(`HTTP error! status: ${response.status}`);
+     }
+     
       const result = await response.json();
       
       if (result.success) {
-        setShowValidationPopup(false); // Close consent popup
-        setShowOTPModal(true); // Open OTP entry modal
+       setShowValidationPopup(false);
+       setShowOTPModal(true);
         setPhoneValidationState(prev => ({
           ...prev,
           status: 'otp_sent',
+         error: null,
           message: 'Verification code sent'
         }));
       } else {
@@ -489,9 +484,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   // Cancel Validation Handler
   const handleCancelValidation = () => {
     setShowValidationPopup(false);
-    // Reset phone field so user can try a different number
-    setPhoneValidationState({ loading: false, status: 'idle' });
-    handleInputChange('phone', ''); // Clear the phone field
+   setPhoneValidationState({ loading: false, status: null, error: null });
+   handleInputChange('phone', '');
   };
 
   // Verify OTP Handler
@@ -501,7 +495,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      // Using VITE_VERIFY_OTP from .env.local
+     // Use config.api.verifyOTP (which pulls from VITE_VERIFY_OTP)
       const response = await fetch(config.api.verifyOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -512,12 +506,17 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
+     if (!response.ok) {
+       throw new Error(`HTTP error! status: ${response.status}`);
+     }
+     
       const result = await response.json();
       
       if (result.success || result.status === 'valid') {
         setPhoneValidationState({ 
           loading: false, 
           status: 'valid',
+         error: null,
           message: 'Phone verified successfully'
         });
         setShowOTPModal(false);
