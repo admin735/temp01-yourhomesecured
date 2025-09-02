@@ -365,33 +365,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-     // Use config.api.phoneValidation (which pulls from VITE_PHONE_VALIDATOR)
-      const response = await fetch(config.api.phoneValidation, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phone: cleaned,
-          session_id: sessionData.session_id
-        })
-      });
+      // Create a step object compatible with validateField
+      const phoneStep = {
+        id: 'phone',
+        validation: {
+          apiEndpoint: config.api.phoneValidation,
+          mockDelay: 1500,
+          message: 'Please enter a valid phone number'
+        }
+      };
       
-      if (!response.ok) {
-       throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-     const result = await response.json();
-      const data = result.data;
-      const customMessage = result.message;
+      // Use validateField instead of direct fetch
+      const result = await validateField(phoneStep, cleaned, sessionData);
       
       setLastValidatedValues(prev => ({ ...prev, phone }));
       
-      if (data.status === 'valid') {
+      if (result.valid && result.data) {
+        const data = result.data;
+        
         if (data.otp_required) {
           setPhoneValidationState({ 
             loading: false, 
             status: 'needs_otp',
            error: null,
-            message: customMessage || `${data.phone_type === 'CELL_PHONE' ? 'Mobile' : 'Toll-free'} number - verification required`,
+            message: result.message || `Verification required`,
             phoneType: data.phone_type
           });
           setShowValidationPopup(true);
@@ -400,7 +397,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             loading: false, 
             status: 'valid',
            error: null,
-            message: customMessage || 'Phone number verified',
+            message: 'Phone number verified',
             phoneType: data.phone_type
           });
           storeValidation('phone', data);
@@ -410,8 +407,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           loading: false, 
           status: 'invalid',
          error: null,
-          message: customMessage || 'Please enter a valid phone number',
-          phoneType: data.phone_type
+          message: result.error || 'Please enter a valid phone number'
         });
       }
     } catch (error) {
