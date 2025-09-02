@@ -1,4 +1,4 @@
-import { config } from '../config/environment.config';
+import { config } from '../../config/environment.config';
 import { reportError } from './errorHandler';
 import { getSessionData, storeValidation } from './session';
 
