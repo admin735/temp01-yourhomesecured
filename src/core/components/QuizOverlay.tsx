@@ -445,7 +445,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-     // Use config.api.sendOTP (which pulls from VITE_SEND_OTP)
+      // Use config.api.sendOTP (which pulls from VITE_SEND_OTP)
       const response = await fetch(config.api.sendOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -455,19 +455,19 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       });
       
-     if (!response.ok) {
-       throw new Error(`HTTP error! status: ${response.status}`);
-     }
-     
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
       
       if (result.success) {
-       setShowValidationPopup(false);
-       setShowOTPModal(true);
+        setShowValidationPopup(false);
+        setShowOTPModal(true);
         setPhoneValidationState(prev => ({
           ...prev,
           status: 'otp_sent',
-         error: null,
+          error: null,
           message: 'Verification code sent'
         }));
       } else {
