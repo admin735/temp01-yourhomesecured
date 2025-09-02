@@ -56,26 +56,26 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   
-  // Add this helper function
+  // Helper function to detect autofilled phone
   const isPhoneAutofilled = () => {
     const cleaned = quizData.phone.replace(/\D/g, '');
     return cleaned.length === 10 && phoneValidationState.status === null;
   };
   
-  // Add autofill detection for email validation
+  // Email autofill detection with proper dependencies
   useEffect(() => {
-    if (currentStep === steps.length - 1) { // Only on contact form step
-      const checkAutofill = setTimeout(() => {
-        // Check if email has value but hasn't been validated
-        if (quizData.email && emailValidationState.valid === null) {
-          console.log('Autofilled email detected, validating...');
+    if (currentStep === steps.length - 1) {
+      const timer = setTimeout(() => {
+        // Auto-validate email if it has content but no validation state
+        if (quizData.email && quizData.email.includes('@') && emailValidationState.valid === null) {
+          console.log('Auto-validating email:', quizData.email);
           handleEmailValidation(quizData.email);
         }
-      }, 500); // Wait for browser autofill to complete
+      }, 800); // Slightly longer delay for autofill to complete
       
-      return () => clearTimeout(checkAutofill);
+      return () => clearTimeout(timer);
     }
-  }, [currentStep]);
+  }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
@@ -823,7 +823,15 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
               {/* Contact Form */}
               {steps[currentStep].type === 'contact' && (
-                <div className="space-y-4">
+                <div 
+                  onFocus={() => {
+                    // Validate email if filled but not validated
+                    if (quizData.email && emailValidationState.valid === null) {
+                      handleEmailValidation(quizData.email);
+                    }
+                  }}
+                  className="space-y-4"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -874,16 +882,30 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     )}
                   </div>
                   
-                  {/* Add hint for autofilled but unvalidated phone */}
-                  {isPhoneAutofilled() && (
-                    <p className="mt-1 text-sm text-blue-600">
-                      Click phone field to verify number
-                    </p>
-                  )}
+                  {/* Clickable verify button for autofilled phone */}
+                  {(() => {
+                    const cleaned = quizData.phone.replace(/\D/g, '');
+                    const needsValidation = cleaned.length === 10 && phoneValidationState.status === null;
+                    
+                    if (needsValidation) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handlePhoneValidation(quizData.phone)}
+                          className="mt-1 text-sm text-blue-600 hover:text-blue-700 underline cursor-pointer"
+                        >
+                          Click to verify phone number
+                        </button>
+                      );
+                    }
+                    
+                    if (phoneValidationState.status === 'invalid' && phoneValidationState.message) {
+                      return <p className="mt-1 text-sm text-red-600">{phoneValidationState.message}</p>;
+                    }
+                    
+                    return null;
+                  })()}
                   
-                  {phoneValidationState.status === 'invalid' && phoneValidationState.message && (
-                    <p className="mt-1 text-sm text-red-600">{phoneValidationState.message}</p>
-                  )}
                   <div className="relative">
                     <input
                       type="email"
