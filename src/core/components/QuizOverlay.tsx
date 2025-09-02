@@ -879,26 +879,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
                   </div>
-                  {quizData.email && emailValidationState.valid === false && (
-                    <p className="mt-1 text-sm text-red-600">Valid email required</p>
-                  )}
                   {emailValidationState.error && (
                     <p className="mt-1 text-sm text-red-600">
-                      {emailValidationState.suggestion ? (
-                        <span>
-                          Did you mean{' '}
-                          <button
-                            type="button"
-                            onClick={() => applySuggestion(emailValidationState.suggestion!)}
-                            className="underline font-semibold hover:text-red-700 cursor-pointer"
-                          >
-                            {emailValidationState.suggestion}
-                          </button>
-                          ?
-                        </span>
-                      ) : (
-                        emailValidationState.error
-                      )}
+                      {emailValidationState.error}
                     </p>
                   )}
                   

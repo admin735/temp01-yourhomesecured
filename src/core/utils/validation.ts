@@ -93,35 +93,38 @@ export const validateField = async (step: any, value: any, sessionData: any) => 
       
       // Handle new response format for validation endpoints
       if (step.id === 'zip' || step.id === 'email' || step.id === 'phone') {
-        // Check if we have the new response format with nested status
-        if (data && typeof data === 'object' && 'data' in data && typeof data.data === 'object' && 'status' in data.data && typeof data.data.status === 'string') {
-          const normalizedStatus = data.data.status.trim().toLowerCase();
-          if (normalizedStatus === 'valid') {
-            const result = {
-              valid: true,
-              error: null,
-              data: data.data || null,
-              ...data
-            };
-            console.log('Validation result for', step.id, ':', result);
-            return result;
-          } else {
-            // Treat ANY non-'valid' status as invalid
-            const result = {
-              valid: false,
-              error: data.message || 'Validation failed',
-              data: data.data || null,
-              ...data
-            };
-            console.log('Validation result for', step.id, ':', result);
-            return result;
-          }
-        } else {
-          // Handle cases where 'status' is missing or not a string, or data.data is malformed
+        console.log('Raw API response:', data);
+        
+        // Handle both response structures
+        // Some endpoints return {status: "valid"} at root
+        // Others return {data: {status: "valid"}}
+        const status = data.status || data.data?.status;
+        const message = data.message || data.data?.message;
+        
+        if (status === 'valid') {
+          const result = {
+            valid: true,
+            error: null,
+            data: data.data || data, // Use nested data if available
+            ...data
+          };
+          console.log('Validation result for', step.id, ':', result);
+          return result;
+        } else if (status === 'invalid') {
           const result = {
             valid: false,
-            error: 'Validation failed: API response status is malformed or missing.',
+            error: message || 'Validation failed',
             data: data.data || null,
+            ...data
+          };
+          console.log('Validation result for', step.id, ':', result);
+          return result;
+        } else {
+          // No valid status found
+          const result = {
+            valid: false,
+            error: message || 'Validation failed',
+            data: null,
             ...data
           };
           console.log('Validation result for', step.id, ':', result);
