@@ -56,6 +56,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [sendingOTP, setSendingOTP] = useState(false);
   
+  // Add this helper function
+  const isPhoneAutofilled = () => {
+    const cleaned = quizData.phone.replace(/\D/g, '');
+    return cleaned.length === 10 && phoneValidationState.status === null;
+  };
+  
   // Add autofill detection for email validation
   useEffect(() => {
     if (currentStep === steps.length - 1) { // Only on contact form step
@@ -841,32 +847,40 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                       value={quizData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       onBlur={(e) => {
-                        // Fire validation when leaving the field
                         const cleaned = e.target.value.replace(/\D/g, '');
                         if (cleaned.length === 10) {
+                          handlePhoneValidation(e.target.value);
+                        }
+                      }}
+                      onFocus={(e) => {
+                        // Validate on focus if autofilled
+                        if (isPhoneAutofilled()) {
                           handlePhoneValidation(e.target.value);
                         }
                       }}
                       className="w-full p-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     
-                    {/* Loading indicator */}
                     {phoneValidationState.loading && (
                       <Loader2 className="absolute right-4 top-4 w-5 h-5 animate-spin text-blue-500" />
                     )}
                     
-                    {/* Valid checkmark */}
                     {phoneValidationState.status === 'valid' && (
                       <CheckCircle className="absolute right-4 top-4 w-5 h-5 text-green-500" />
                     )}
                     
-                    {/* Invalid X */}
                     {phoneValidationState.status === 'invalid' && (
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
                   </div>
                   
-                  {/* Error message */}
+                  {/* Add hint for autofilled but unvalidated phone */}
+                  {isPhoneAutofilled() && (
+                    <p className="mt-1 text-sm text-blue-600">
+                      Click phone field to verify number
+                    </p>
+                  )}
+                  
                   {phoneValidationState.status === 'invalid' && phoneValidationState.message && (
                     <p className="mt-1 text-sm text-red-600">{phoneValidationState.message}</p>
                   )}
