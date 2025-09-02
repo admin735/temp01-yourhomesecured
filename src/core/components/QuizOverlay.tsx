@@ -462,13 +462,13 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       const result = await response.json();
       
-      if (result.success) {
+      // Check for success OR status:200 (based on your n8n response)
+      if (result.success || result.status === 200 || response.status === 200) {
         setShowValidationPopup(false);
         setShowOTPModal(true);
         setPhoneValidationState(prev => ({
           ...prev,
           status: 'otp_sent',
-          error: null,
           message: 'Verification code sent'
         }));
       } else {
