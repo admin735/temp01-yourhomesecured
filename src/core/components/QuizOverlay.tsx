@@ -27,19 +27,6 @@ interface QuizOverlayProps {
 }
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
-  // Debug API endpoints
-  useEffect(() => {
-    console.log('=== ALL ENDPOINTS CHECK ===');
-    console.log('leadSubmit:', config.api.leadSubmit);
-    console.log('zipValidation:', config.api.zipValidation);
-    console.log('emailValidation:', config.api.emailValidation);
-    console.log('phoneValidation:', config.api.phoneValidation);
-    console.log('sendOTP:', config.api.sendOTP);
-    console.log('verifyOTP:', config.api.verifyOTP);
-    console.log('qualification:', config.api.qualification);
-    console.log('===========================');
-  }, []);
-
   const [currentStep, setCurrentStep] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isLoadingStep, setIsLoadingStep] = useState(false);
@@ -860,21 +847,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     {phoneValidationState.status === 'invalid' && (
                       <XCircle className="absolute right-4 top-4 w-5 h-5 text-red-500" />
                     )}
-                  </div>
-                  
-                  {/* Test Phone Verification Popup Button */}
-                  <div className="p-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        console.log('Test button clicked');
-                        console.log('Current state:', { showValidationPopup, showOTPModal });
-                        setShowValidationPopup(true);
-                      }}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg w-full font-semibold"
-                    >
-                      🧪 Test Phone Verification Popup
-                    </button>
                   </div>
                   
                   {/* Error message */}
