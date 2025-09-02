@@ -183,98 +183,13 @@ const validateLocally = (step: any, value: any) => {
   
   return { valid: true };
 };
-          const result = { 
-            valid: true, 
-            error: null,
-            data: data.data, // enrichment data
-            ...data  // Spread all properties
-          };
-          console.log('Returning from validateField:', result);
-          return result;
-        } else if (data.status === 'invalid') {
-          const result = { 
-            valid: false, 
-            error: data.message || 'Validation failed',
-            data: null,
-            ...data  // Spread all properties
-          };
-          console.log('Returning from validateField:', result);
-          return result;
-        } else {
-          // Backend error but allow continuation
-          const result = {
-            valid: true,
-            error: null,
-            data: null,
-            ...data  // Spread all properties
-          };
-          console.log('Returning from validateField:', result);
-          return result;
-        }
-      } else {
-        // Original format for other endpoints
-        if (data.response === 'success') {
-          return { valid: true, data: data.additionalData };
-        } else {
-          return { valid: false, error: data.message || 'Validation failed' };
-        }
-      }
-    } catch (error: any) {
-      // Report to error webhook if available
-      if (config.api.errorReporting) {
-        await reportError(error as Error, {
-          type: `${step.id}_validation_timeout`,
-          message: error.name === 'AbortError' ? 'Validation timeout' : error.message,
-          details: {
-            field: step.id,
-            endpoint: apiEndpoint
-          }
-        });
-      }
-      
-      // Fall back to local validation
-      await sleep(step.validation?.mockDelay || 1500);
-      return validateLocally(step, value);
-    }
-  } else {
-    // No API endpoint configured - use local validation
-    await sleep(step.validation?.mockDelay || 1500);
-    return validateLocally(step, value);
-  }
+
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
-const validateLocally = (step: any, value: any) => {
-  if (step.id === 'zip') {
-    const valid = validateZIP(value);
-    return {
-      valid,
-      error: valid ? null : step.validation?.message || 'Please enter a valid ZIP code'
-    };
-  }
-  
-  if (step.id === 'email') {
-    const valid = validateEmail(value);
-    return {
-      valid,
-      error: valid ? null : 'Please enter a valid email address'
-    };
-  }
-  
-  if (step.id === 'phone') {
-    const valid = validatePhone(value);
-    return {
-      valid,
-      error: valid ? null : 'Please enter a valid phone number'
-    };
-  }
-  
-  if (step.validation?.pattern) {
-    const valid = step.validation.pattern.test(value);
-    return {
-      valid,
-      error: valid ? null : step.validation.message
-    };
-  }
-  
-  return { valid: true };
+const validatePhone = (phone: string): boolean => {
+  const phoneRegex = /^\d{10}$/;
+  return phoneRegex.test(phone.replace(/\D/g, ''));
 };
