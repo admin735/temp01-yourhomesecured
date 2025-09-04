@@ -8,6 +8,8 @@ import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
+import { useCompliance } from '../hooks/useCompliance';
+import { storeComplianceData } from '../utils/session';
 
 interface EmailValidationState {
   loading: boolean;
@@ -18,8 +20,10 @@ interface EmailValidationState {
 
 interface PhoneValidationState {
   loading: boolean;
-  status: 'valid' | 'invalid' | null;
+  status: 'valid' | 'invalid' | 'needs_otp' | 'otp_sent' | null;
   error: string | null;
+  message?: string;
+  phoneType?: string;
 }
 
 interface QuizOverlayProps {
@@ -28,6 +32,7 @@ interface QuizOverlayProps {
 }
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
+  const jornayaEnabled = complianceConfig.jornaya.enabled;
   const [currentStep, setCurrentStep] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isLoadingStep, setIsLoadingStep] = useState(false);
@@ -92,7 +97,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
-  // Jornaya LeadiD capture effect
+ // Jornaya LeadiD capture effect
   useEffect(() => {
     if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
       let attempts = 0;
@@ -119,9 +124,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         }
       };
       
-      checkForLeadiD();
+      // Start checking after a brief delay to let Jornaya script initialize
+      setTimeout(checkForLeadiD, 1000);
     }
-  }, [currentStep]);
+  }, [currentStep, steps.length]);
+  
   
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
@@ -441,7 +448,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           setPhoneValidationState({ 
             loading: false, 
             status: 'needs_otp',
-           error: null,
+             error: null,
             message: result.message || `Verification required`,
             phoneType: data.phone_type
           });
@@ -469,7 +476,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setPhoneValidationState({ 
         loading: false, 
         status: 'invalid', 
-       error: null,
+         error: null,
         message: 'Unable to validate phone number. Please try again.' 
       });
     }
@@ -528,7 +535,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   // Separate function for resending OTP
   const handleResendOTP = () => {
     console.log('Resend button clicked - calling handleSendOTP with true');
-    handleSendOTP(true);
+    handleSendOTP();
   };
 
   // Cancel Validation Handler
@@ -567,6 +574,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         setPhoneValidationState({ 
           loading: false, 
           status: 'valid',
+          error: null,
           message: 'Phone verified successfully'
         });
         setShowOTPModal(false);
@@ -975,20 +983,20 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     </p>
                   )}
                   
-                  {complianceConfig.jornaya.enabled && (
-                    <input
-                      id="leadid_token"
-                      name="universal_leadid"
-                      type="hidden"
-                      value=""
-                      style={{ display: 'none' }}
-                    />
-                  )}
+                      {complianceConfig.jornaya.enabled && (
+                        <input
+                          id="leadid_token"
+                          name="universal_leadid"
+                          type="hidden"
+                          value=""
+                          style={{ display: 'none' }}
+                        />
+                      )}
                   
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
                     <input
                       type="checkbox"
-                      id={complianceConfig.jornaya.enabled ? "leadid_tcpa_disclosure" : "tcpa_consent"}
+                      id={jornayaEnabled ? "leadid_tcpa_disclosure" : "tcpa_consent"}
                       checked={tcpaConsent}
                       onChange={(e) => {
                         setTcpaConsent(e.target.checked);
