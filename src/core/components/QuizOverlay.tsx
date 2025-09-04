@@ -216,11 +216,14 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     if (field === 'phone') {
       const cleaned = value.replace(/\D/g, '');
       if (cleaned.length <= 10) {
-        const formatted = cleaned.length > 6 
-          ? `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`
-          : cleaned.length > 3
-          ? `(${cleaned.slice(0,3)}) ${cleaned.slice(3)}`
-          : cleaned;
+        let formatted: string;
+        if (cleaned.length > 6) {
+          formatted = '(' + cleaned.slice(0, 3) + ') ' + cleaned.slice(3, 6) + '-' + cleaned.slice(6);
+        } else if (cleaned.length > 3) {
+          formatted = '(' + cleaned.slice(0, 3) + ') ' + cleaned.slice(3);
+        } else {
+          formatted = cleaned;
+        }
         value = formatted;
       }
     }
