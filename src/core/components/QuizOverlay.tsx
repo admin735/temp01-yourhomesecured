@@ -325,11 +325,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     
     // Check if domain is a known typo
     if (domainTypos[domain]) {
-      const suggestedEmail = `${localPart}@${domainTypos[domain]}`;
+      const suggestedEmail = \`${localPart}@${domainTypos[domain]}`;
       setEmailValidationState({
         loading: false,
         valid: false,
-        error: `Did you mean ${suggestedEmail}?`,
+        error: \`Did you mean ${suggestedEmail}?`,
         suggestion: suggestedEmail
       });
       return;
@@ -447,7 +447,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             loading: false, 
             status: 'needs_otp',
            error: null,
-            message: result.message || `Verification required`,
+            message: result.message || \`Verification required`,
             phoneType: data.phone_type
           });
           setShowValidationPopup(true);
@@ -499,7 +499,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(\`HTTP error! status: ${response.status}`);
       }
       
       const result = await response.json();
@@ -562,7 +562,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(\`HTTP error! status: ${response.status}`);
       }
       
       const result = await response.json();
@@ -721,7 +721,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${loadingProgress}%` }}
+              style={{ width: \`${loadingProgress}%` }}
             />
           </div>
           <h3 className="text-xl font-semibold text-gray-900">
@@ -749,7 +749,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
               </button>
             )}
             <h2 className="text-xl font-bold text-gray-900">
-              {showThankYou ? 'Thank You!' : `Step ${currentStep + 1} of ${steps.length}`}
+              {showThankYou ? 'Thank You!' : \`Step ${currentStep + 1} of ${steps.length}`}
             </h2>
           </div>
           {!showThankYou && (
@@ -774,7 +774,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                style={{ width: \`${((currentStep + 1) / steps.length) * 100}%` }}
               ></div>
             </div>
           </div>
@@ -853,7 +853,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     >
                       <input
                         type="radio"
-                        name={`step-${currentStep}-${steps[currentStep].id}`}
+                        name={\`step-${currentStep}-${steps[currentStep].id}`}
                         value={option}
                         checked={quizData[quizConfig.steps[currentStep].id as keyof typeof quizData] === quizConfig.steps[currentStep].options?.find(opt => opt.label === option)?.value}
                         onChange={(e) => handleOptionSelect(e.target.value)}
@@ -1030,7 +1030,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                 handleNext();
               }}
               disabled={!canProceed()}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+              className={\`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
                 canProceed()
                   ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50 pointer-events-none'
