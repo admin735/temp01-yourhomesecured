@@ -749,7 +749,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
               </button>
             )}
             <h2 className="text-xl font-bold text-gray-900">
-              {showThankYou ? 'Thank You!' : \`Step ${currentStep + 1} of ${steps.length}`}
+              {showThankYou ? 'Thank You!' : `Step ${currentStep + 1} of ${steps.length}`}
             </h2>
           </div>
           {!showThankYou && (
