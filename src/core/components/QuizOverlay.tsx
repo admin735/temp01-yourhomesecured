@@ -33,6 +33,23 @@ interface QuizOverlayProps {
 }
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
+  // Build steps from config - MUST be first to avoid initialization errors
+  const steps = useMemo(() => [
+    ...quizConfig.steps.map(step => ({
+      id: step.id,
+      title: step.question,
+      helper: step.helper,
+      type: step.type === 'button-group' ? 'radio' : step.type,
+      options: step.options,
+      placeholder: step.placeholder
+    })),
+    {
+      id: 'contact',
+      title: 'Please enter your contact details:',
+      type: 'contact'
+    }
+  ], []);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isLoadingStep, setIsLoadingStep] = useState(false);
@@ -136,6 +153,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, steps.length]);
 
+  // After qualifying questions, before contact
+  const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
+
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
@@ -170,26 +190,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return true;
     }
   };
-
-  // Build steps from config
-  const steps = useMemo(() => [
-    ...quizConfig.steps.map(step => ({
-      id: step.id,
-      title: step.question,
-      helper: step.helper,
-      type: step.type === 'button-group' ? 'radio' : step.type,
-      options: step.options,
-      placeholder: step.placeholder
-    })),
-    {
-      id: 'contact',
-      title: 'Please enter your contact details:',
-      type: 'contact'
-    }
-  ], []);
-
-  // After qualifying questions, before contact
-  const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
 
   const getOptions = (stepIndex: number) => {
     if (stepIndex < quizConfig.steps.length) {

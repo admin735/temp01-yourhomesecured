@@ -17,9 +17,9 @@ interface ErrorReport {
 }
 
 export const reportError = async (error: Error, metadata?: Record<string, any>) => {
-  if (!config.api.errorReporting) {
+  if (!config.api.errorReporting || config.api.errorReporting.trim() === '') {
     if (config.features.debugMode) {
-      console.error('Error reporting webhook not configured:', error);
+      console.error('Error reporting webhook not configured or empty:', error);
     }
     return;
   }
