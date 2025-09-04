@@ -28,6 +28,10 @@ export const complianceConfig: ComplianceConfig = {
     fieldName: 'universal_leadid' // Database field name for LeadiD
   },
   trustedForm: {
-    enabled: false // Future implementation
+    enabled: true,  // Turn this ON
+    accountId: 'YOUR_ACCOUNT_ID_HERE',  // Add your real account ID
+    sandbox: true,  // Keep in sandbox for testing
+    fieldName: 'xxTrustedFormCertUrl',
+    invertFieldSensitivity: false
   }
 };
