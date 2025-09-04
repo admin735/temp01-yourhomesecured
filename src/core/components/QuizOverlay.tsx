@@ -329,7 +329,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setEmailValidationState({
         loading: false,
         valid: false,
-        error: \`Did you mean ${suggestedEmail}?`,
+        error: `Did you mean ${suggestedEmail}?`,
         suggestion: suggestedEmail
       });
       return;
