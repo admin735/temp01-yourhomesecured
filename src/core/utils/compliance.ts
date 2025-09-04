@@ -6,7 +6,7 @@ import { ComplianceData } from '../types/quiz.types';
  * Dynamically injects the Jornaya script into the page
  */
 export const loadJornayaScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!complianceConfig.jornaya.enabled) {
       resolve();
       return;
@@ -18,48 +18,29 @@ export const loadJornayaScript = (): Promise<void> => {
       return;
     }
 
-    // Create and inject the script
+    // Create and inject the script directly (like your manual test)
     const script = document.createElement('script');
-    script.id = 'LeadiDscript';
+    script.id = 'LeadiDscript_campaign';
     script.type = 'text/javascript';
-    script.innerHTML = `
-      (function() {
-        var s = document.createElement('script');
-        s.id = 'LeadiDscript_campaign';
-        s.type = 'text/javascript';
-        s.async = true;
-        s.src = '//create.lidstatic.com/campaign/${complianceConfig.jornaya.campaignId}.js?snippet_version=2';
-        var LeadiDscript = document.getElementById('LeadiDscript');
-        LeadiDscript.parentNode.insertBefore(s, LeadiDscript);
-      })();
-    `;
-
+    script.async = true;
+    script.src = `//create.lidstatic.com/campaign/${complianceConfig.jornaya.campaignId}.js?snippet_version=2`;
+    
+    script.onload = () => {
+      console.log('Jornaya script loaded successfully');
+      resolve();
+    };
+    
+    script.onerror = () => {
+      console.error('Failed to load Jornaya script');
+      resolve(); // Resolve anyway to not block
+    };
+    
     document.body.appendChild(script);
 
-    // Add noscript fallback
+    // Also add the noscript fallback
     const noscript = document.createElement('noscript');
     noscript.innerHTML = `<img src='//create.leadid.com/noscript.gif?lac=${complianceConfig.jornaya.accountId}&lck=${complianceConfig.jornaya.campaignId}&snippet_version=2' />`;
     document.body.appendChild(noscript);
-
-    // Wait for script to load and initialize
-    let checkAttempts = 0;
-    const checkInterval = setInterval(() => {
-      checkAttempts++;
-      
-      // Check if Jornaya has populated the field
-      const leadidField = document.getElementById('leadid_token') as HTMLInputElement;
-      if (leadidField && leadidField.value) {
-        clearInterval(checkInterval);
-        resolve();
-      }
-      
-      // Timeout after 10 seconds
-      if (checkAttempts > 100) {
-        clearInterval(checkInterval);
-        console.warn('Jornaya script loaded but LeadiD not generated within timeout');
-        resolve(); // Resolve anyway to not block form submission
-      }
-    }, 100);
   });
 };
 
