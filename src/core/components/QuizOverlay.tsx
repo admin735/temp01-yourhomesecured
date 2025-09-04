@@ -8,15 +8,7 @@ import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
+
 
 interface EmailValidationState {
   loading: boolean;
@@ -77,15 +69,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     last_name: '',
     phone: '',
     email: '',
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
     leadid_token: ''
   });
   
