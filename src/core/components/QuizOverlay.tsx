@@ -492,6 +492,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   };
 
+  // Separate function for resending OTP
+  const handleResendOTP = () => {
+    console.log('Resend button clicked - calling handleSendOTP with true');
+    handleSendOTP(true);
+  };
+
   // Cancel Validation Handler
   const handleCancelValidation = () => {
     setShowValidationPopup(false);
@@ -1033,7 +1039,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         isOpen={showOTPModal}
         phoneNumber={quizData.phone}
         onVerify={handleVerifyOTP}
-        onResend={handleSendOTP}
+        onResend={handleResendOTP}
         onClose={() => setShowOTPModal(false)}
       />
     </>
