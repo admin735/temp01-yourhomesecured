@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, AlertCircle, Shield } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
@@ -172,7 +172,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   };
 
   // Build steps from config
-  const steps = [
+  const steps = useMemo(() => [
     ...quizConfig.steps.map(step => ({
       id: step.id,
       title: step.question,
@@ -186,7 +186,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       title: 'Please enter your contact details:',
       type: 'contact'
     }
-  ];
+  ], []);
 
   // After qualifying questions, before contact
   const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
