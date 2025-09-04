@@ -562,7 +562,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       });
       
       if (!response.ok) {
-        throw new Error(\`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const result = await response.json();
