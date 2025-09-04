@@ -447,7 +447,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             loading: false, 
             status: 'needs_otp',
            error: null,
-            message: result.message || \`Verification required`,
+            message: result.message || `Verification required`,
             phoneType: data.phone_type
           });
           setShowValidationPopup(true);
