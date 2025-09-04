@@ -1,3 +1,4 @@
+```typescript
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, AlertCircle, Shield } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
@@ -123,7 +124,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       checkForLeadiD();
     }
   }, [currentStep]);
-  
+
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
@@ -1091,3 +1092,4 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     </>
   );
 };
+```
