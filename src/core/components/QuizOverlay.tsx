@@ -350,7 +350,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           : cleaned;
         value = formatted;
       }
-    }
+ 
+  }
+}   }
     
     // Update local state
     setQuizData(prev => ({
