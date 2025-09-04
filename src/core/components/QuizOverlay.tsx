@@ -9,6 +9,9 @@ import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
+import { useCompliance } from '../hooks/useCompliance';
+import { storeComplianceData } from '../utils/session';
+import { loadJornayaScript } from '../utils/compliance'; 
 
 
 interface EmailValidationState {
@@ -79,7 +82,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     return cleaned.length === 10 && phoneValidationState.status === null;
   };
   
-  // Email autofill detection with proper dependencies
+// Email autofill detection with proper dependencies
   useEffect(() => {
     if (currentStep === steps.length - 1) {
       const timer = setTimeout(() => {
@@ -97,33 +100,41 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   // Jornaya LeadiD capture effect
   useEffect(() => {
     if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      console.log('Contact form reached, loading Jornaya script');
       
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+      // Load the Jornaya script first
+      loadJornayaScript().then(() => {
+        console.log('Jornaya script loaded, starting LeadiD capture');
         
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
+        let attempts = 0;
+        const maxAttempts = 30; // 15 seconds with 500ms intervals
         
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
-      };
-      
-      checkForLeadiD();
+        const checkForLeadiD = () => {
+          const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+          
+          if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+            console.log('LeadiD captured:', leadidInput.value);
+            setQuizData(prev => ({
+              ...prev,
+              leadid_token: leadidInput.value
+            }));
+            storeFormField('leadid_token', leadidInput.value);
+            return true; // Found it
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(checkForLeadiD, 500);
+          } else {
+            console.warn('LeadiD not found after maximum attempts');
+          }
+        };
+        
+        // Wait 1 second after script loads before checking
+        setTimeout(checkForLeadiD, 1000);
+      });
     }
-  }, [currentStep]);
+  }, [currentStep, steps.length]);
 
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
