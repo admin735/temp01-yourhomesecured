@@ -102,7 +102,8 @@ export const quizConfig = {
       { id: 'first_name', type: 'text', label: 'First Name', placeholder: 'First Name', required: true },
       { id: 'last_name', type: 'text', label: 'Last Name', placeholder: 'Last Name', required: true },
       { id: 'email', type: 'email', label: 'Email', placeholder: 'you@example.com', required: true },
-      { id: 'phone', type: 'tel', label: 'Phone', placeholder: '(___) ___-____', required: true }
+      { id: 'phone', type: 'tel', label: 'Phone', placeholder: '(___) ___-____', required: true },
+      { id: 'leadid_token', type: 'hidden', label: 'LeadiD Token', required: false }
     ],
     consent: {
       text: 'By clicking "Get My Options", you agree to be contacted by YourHomeSecured and our security partners at the number/email provided (including autodialed, prerecorded, and text messages). Consent not required to buy. Msg & data rates may apply. See our Privacy Policy and Terms.',

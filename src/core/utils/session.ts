@@ -71,7 +71,14 @@ export const storeValidation = (type: string, response: any) => {
       sessionData.validations = {};
     }
     
-    sessionData.validations[type] = response;
+    // Get the existing data for this type, or an empty object if none exists
+    const existingData = sessionData.validations[type] || {};
+    
+    // Merge the existing data with the new response data
+    // New properties from 'response' will be added.
+    // If a property exists in both, the one from 'response' will overwrite the existing one.
+    sessionData.validations[type] = { ...existingData, ...response };
+    
     console.log('About to save to sessionStorage:', sessionData);
     
     try {
