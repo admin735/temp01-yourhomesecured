@@ -325,7 +325,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     
     // Check if domain is a known typo
     if (domainTypos[domain]) {
-      const suggestedEmail = \`${localPart}@${domainTypos[domain]}`;
+      const suggestedEmail = `${localPart}@${domainTypos[domain]}`;
       setEmailValidationState({
         loading: false,
         valid: false,
