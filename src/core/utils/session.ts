@@ -8,13 +8,27 @@ const generateSessionId = (): string => {
 
 // Initialize session data structure
 const initializeSession = (): SessionData => {
+  // Capture URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const utmData: Record<string, string> = {};
+  
+  // Capture all query parameters
+  urlParams.forEach((value, key) => {
+    utmData[key] = value;
+  });
+  
   return {
     session_id: generateSessionId(),
+    landing_page: window.location.href,
+    referrer: document.referrer || 'direct',
+    timestamp: new Date().toISOString(),
     quiz_answers: {},
     form_fields: {},
     validations: {},
     compliance: {},
-    timestamp: new Date().toISOString()
+    utm: utmData,
+    ip_address: null,
+    user_agent: navigator.userAgent
   };
 };
 

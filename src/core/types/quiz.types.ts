@@ -40,11 +40,16 @@ export interface ValidationState {
 
 export interface SessionData {
   session_id: string;
+  landing_page: string;
+  referrer: string;
+  timestamp: string;
   quiz_answers: Record<string, any>;
   form_fields: Record<string, any>;
   validations: Record<string, any>;
   compliance?: Record<string, any>;
-  timestamp: string;
+  utm: Record<string, string>;
+  ip_address: string | null;
+  user_agent: string;
 }
 
 // Add compliance types
