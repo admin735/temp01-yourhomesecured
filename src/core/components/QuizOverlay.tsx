@@ -721,7 +721,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: \`${loadingProgress}%` }}
+              style={{ width: `${loadingProgress}%` }}
             />
           </div>
           <h3 className="text-xl font-semibold text-gray-900">
