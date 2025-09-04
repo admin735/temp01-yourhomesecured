@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from './core/components/ErrorBoundary';
-import { initializeSession } from './core/utils/session';
+import { getSessionData } from './core/utils/session';
 import { ComplianceScripts } from './core/components/ComplianceScripts';
 import { complianceConfig } from './config/compliance.config';
 import { HomeLayout } from './core/layouts/HomeLayout';
@@ -12,7 +12,7 @@ import { TCPADisclaimer } from './core/pages/TCPADisclaimer';
 
 function App() {
   useEffect(() => {
-    initializeSession();
+    getSessionData();
   }, []);
 
   return (
