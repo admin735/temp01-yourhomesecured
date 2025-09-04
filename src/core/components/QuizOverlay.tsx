@@ -1033,7 +1033,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         isOpen={showOTPModal}
         phoneNumber={quizData.phone}
         onVerify={handleVerifyOTP}
-        onResend={handleSendOTP}
+        onResend={() => handleSendOTP(true)}
         onClose={() => setShowOTPModal(false)}
       />
     </>
