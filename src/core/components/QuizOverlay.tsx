@@ -16,6 +16,7 @@ import { complianceConfig } from '../../config/compliance.config';
 import { complianceConfig } from '../../config/compliance.config';
 import { complianceConfig } from '../../config/compliance.config';
 import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
 
 interface EmailValidationState {
   loading: boolean;
@@ -85,6 +86,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     leadid_token: ''
     leadid_token: ''
     leadid_token: ''
+    leadid_token: ''
   });
   
   // Helper function to detect autofilled phone
@@ -108,6 +110,31 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
   // Jornaya LeadiD capture effect
   useEffect(() => {
     if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
