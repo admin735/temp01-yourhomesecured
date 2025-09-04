@@ -2,8 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from './core/components/ErrorBoundary';
 import { getSessionData } from './core/utils/session';
-import { ComplianceScripts } from './core/components/ComplianceScripts';
-import { complianceConfig } from './config/compliance.config';
 import { HomeLayout } from './core/layouts/HomeLayout';
 import { HeroLayout } from './core/layouts/HeroLayout';
 import { PrivacyPolicy } from './core/pages/PrivacyPolicy';
@@ -30,11 +28,6 @@ function App() {
           <Route path="/tcpa-disclaimer" element={<TCPADisclaimer />} />
         </Routes>
       </Router>
-      
-      {/* Compliance Scripts */}
-      {(complianceConfig.jornaya.enabled || complianceConfig.trustedForm.enabled) && (
-        <ComplianceScripts />
-      )}
     </ErrorBoundary>
   );
 }
