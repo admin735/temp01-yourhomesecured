@@ -102,21 +102,23 @@ export const getFinalSubmissionPayload = () => {
   
   const payload = {
     session_id: session.session_id,
-    timestamp: session.timestamp,
     quiz_answers: session.quiz_answers,
-    form_fields: session.form_fields,
+    lead: session.form_fields,
     validations: session.validations,
+    utm: session.utm,  // Include UTM parameters
+    metadata: {
+      landing_page: session.landing_page,
+      referrer: session.referrer,
+      timestamp: session.timestamp,
+      user_agent: session.user_agent,
+      ip_address: session.ip_address
+    },
     
     // Add compliance data if present
     ...(session.compliance && {
       leadid_token: session.compliance.leadid_token,
       leadid_timestamp: session.compliance.leadid_timestamp,
-      tcpa_version: session.compliance.tcpa_version,
       page_url: session.compliance.page_url,
-      consent_language: session.compliance.consent_language,
-      trusted_form_cert: session.compliance.trusted_form_cert,
-      trusted_form_fingerprint: session.compliance.trusted_form_fingerprint,
-      trusted_form_ping_url: session.compliance.trusted_form_ping_url
     })
   };
   
