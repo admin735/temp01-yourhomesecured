@@ -450,17 +450,14 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     try {
       const sessionData = getSessionData();
       
-      // Build the request body with conditional status parameter
-      const requestBody = {
-        phone: cleaned,
-        session_id: sessionData.session_id,
-        ...(isResend && { status: 'new_code' }) // Add this parameter only for resends
-      };
-      
+      // Use config.api.sendOTP (which pulls from VITE_SEND_OTP)
       const response = await fetch(config.api.sendOTP, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({ 
+          phone: cleaned,
+          session_id: sessionData.session_id
+        })
       });
       
       if (!response.ok) {
@@ -1026,7 +1023,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       <PhoneValidationPopup
         isOpen={showValidationPopup}
         phoneNumber={quizData.phone}
-        onConfirm={() => handleSendOTP(false)}
+        onConfirm={handleSendOTP}
         onCancel={handleCancelValidation}
         loading={sendingOTP}
       />
@@ -1036,7 +1033,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         isOpen={showOTPModal}
         phoneNumber={quizData.phone}
         onVerify={handleVerifyOTP}
-        onResend={() => handleSendOTP(true)}
+        onResend={handleSendOTP}
         onClose={() => setShowOTPModal(false)}
       />
     </>
