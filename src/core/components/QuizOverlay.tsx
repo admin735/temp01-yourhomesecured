@@ -8,11 +8,6 @@ import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
-import { complianceConfig } from '../../config/compliance.config';
 
 interface EmailValidationState {
   loading: boolean;
@@ -74,11 +69,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     phone: '',
     email: '',
     leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
-    leadid_token: ''
   });
   
   // Helper function to detect autofilled phone
@@ -127,131 +117,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         } else {
           console.warn('LeadiD not found after maximum attempts');
         }
-  // Jornaya LeadiD capture effect
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      };
       
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-        
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
-  // Jornaya LeadiD capture effect
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
-      
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-        
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
-  // Jornaya LeadiD capture effect
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
-      
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-        
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
-  // Jornaya LeadiD capture effect
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
-      
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-        
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
-  // Jornaya LeadiD capture effect
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      let attempts = 0;
-      const maxAttempts = 30; // 15 seconds with 500ms intervals
-      
-      const checkForLeadiD = () => {
-        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-        
-        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-          console.log('LeadiD captured:', leadidInput.value);
-          setQuizData(prev => ({
-            ...prev,
-            leadid_token: leadidInput.value
-          }));
-          storeFormField('leadid_token', leadidInput.value);
-          return true; // Found it
-        }
-        
-        attempts++;
-        if (attempts < maxAttempts) {
-          setTimeout(checkForLeadiD, 500);
-        } else {
-          console.warn('LeadiD not found after maximum attempts');
-        }
+      checkForLeadiD();
+    }
+  }, [currentStep]);
+  
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
@@ -350,9 +221,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           : cleaned;
         value = formatted;
       }
- 
-  }
-}   }
+    }
     
     // Update local state
     setQuizData(prev => ({
@@ -1106,6 +975,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     </p>
                   )}
                   
+                  {complianceConfig.jornaya.enabled && (
+                    <input
+                      id="leadid_token"
                       name="universal_leadid"
                       type="hidden"
                       value=""
@@ -1116,7 +988,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
                     <input
                       type="checkbox"
-                      id={jornayaEnabled ? "leadid_tcpa_disclosure" : "tcpa_consent"}
+                      id={complianceConfig.jornaya.enabled ? "leadid_tcpa_disclosure" : "tcpa_consent"}
                       checked={tcpaConsent}
                       onChange={(e) => {
                         setTcpaConsent(e.target.checked);
