@@ -1095,4 +1095,3 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     </>
   );
 };
-```
