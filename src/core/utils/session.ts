@@ -117,6 +117,10 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         } else {
           console.warn('LeadiD not found after maximum attempts');
         }
+      }
+    }
+  }
+  )
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
