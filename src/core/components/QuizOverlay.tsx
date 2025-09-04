@@ -8,8 +8,12 @@ import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
-import { useCompliance } from '../hooks/useCompliance';
-import { storeComplianceData } from '../utils/session';
+import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
+import { complianceConfig } from '../../config/compliance.config';
 
 interface EmailValidationState {
   loading: boolean;
@@ -20,10 +24,8 @@ interface EmailValidationState {
 
 interface PhoneValidationState {
   loading: boolean;
-  status: 'valid' | 'invalid' | 'needs_otp' | 'otp_sent' | null;
+  status: 'valid' | 'invalid' | null;
   error: string | null;
-  message?: string;
-  phoneType?: string;
 }
 
 interface QuizOverlayProps {
@@ -32,7 +34,6 @@ interface QuizOverlayProps {
 }
 
 export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => {
-  const jornayaEnabled = complianceConfig.jornaya.enabled;
   const [currentStep, setCurrentStep] = useState(0);
   const [showThankYou, setShowThankYou] = useState(false);
   const [isLoadingStep, setIsLoadingStep] = useState(false);
@@ -74,6 +75,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     phone: '',
     email: '',
     leadid_token: ''
+    leadid_token: ''
+    leadid_token: ''
+    leadid_token: ''
+    leadid_token: ''
+    leadid_token: ''
+    leadid_token: ''
   });
   
   // Helper function to detect autofilled phone
@@ -97,7 +104,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
- // Jornaya LeadiD capture effect
+  // Jornaya LeadiD capture effect
   useEffect(() => {
     if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
       let attempts = 0;
@@ -122,14 +129,156 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         } else {
           console.warn('LeadiD not found after maximum attempts');
         }
-      };
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
       
-      // Start checking after a brief delay to let Jornaya script initialize
-      setTimeout(checkForLeadiD, 1000);
-    }
-  }, [currentStep, steps.length]);
-  
-  
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
+  // Jornaya LeadiD capture effect
+  useEffect(() => {
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      let attempts = 0;
+      const maxAttempts = 30; // 15 seconds with 500ms intervals
+      
+      const checkForLeadiD = () => {
+        const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+        
+        if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+          console.log('LeadiD captured:', leadidInput.value);
+          setQuizData(prev => ({
+            ...prev,
+            leadid_token: leadidInput.value
+          }));
+          storeFormField('leadid_token', leadidInput.value);
+          return true; // Found it
+        }
+        
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkForLeadiD, 500);
+        } else {
+          console.warn('LeadiD not found after maximum attempts');
+        }
   const checkQualification = async () => {
     // Toggle to skip qualification logic - set to false to always qualify
     const ENABLE_QUALIFICATION_CHECK = false;
@@ -448,7 +597,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           setPhoneValidationState({ 
             loading: false, 
             status: 'needs_otp',
-             error: null,
+           error: null,
             message: result.message || `Verification required`,
             phoneType: data.phone_type
           });
@@ -476,7 +625,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setPhoneValidationState({ 
         loading: false, 
         status: 'invalid', 
-         error: null,
+       error: null,
         message: 'Unable to validate phone number. Please try again.' 
       });
     }
@@ -535,7 +684,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   // Separate function for resending OTP
   const handleResendOTP = () => {
     console.log('Resend button clicked - calling handleSendOTP with true');
-    handleSendOTP();
+    handleSendOTP(true);
   };
 
   // Cancel Validation Handler
@@ -574,7 +723,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         setPhoneValidationState({ 
           loading: false, 
           status: 'valid',
-          error: null,
           message: 'Phone verified successfully'
         });
         setShowOTPModal(false);
@@ -983,15 +1131,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     </p>
                   )}
                   
-                      {complianceConfig.jornaya.enabled && (
-                        <input
-                          id="leadid_token"
-                          name="universal_leadid"
-                          type="hidden"
-                          value=""
-                          style={{ display: 'none' }}
-                        />
-                      )}
+                      name="universal_leadid"
+                      type="hidden"
+                      value=""
+                      style={{ display: 'none' }}
+                    />
+                  )}
                   
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
                     <input
