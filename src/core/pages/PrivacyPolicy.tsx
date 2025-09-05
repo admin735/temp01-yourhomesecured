@@ -136,7 +136,7 @@ export const PrivacyPolicy: React.FC = () => {
                 <li>Withdraw consent for information sharing</li>
               </ul>
               <p className="text-gray-600 mb-4">
-                To exercise these rights, contact us at <a href="mailto:privacy@yourhomesecured.com" className="text-blue-600 hover:underline">privacy@yourhomesecured.com</a>.
+                To exercise these rights, contact us at <a href="mailto:admin@yourhomesecured.com" className="text-blue-600 hover:underline">admin@yourhomesecured.com</a>.
               </p>
             </section>
 
