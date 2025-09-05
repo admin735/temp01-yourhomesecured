@@ -189,7 +189,7 @@ export const TermsOfService: React.FC = () => {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700">
                   <strong>YourHomeSecured</strong><br />
-                  Email: <a href="mailto:legal@yourhomesecured.com" className="text-blue-600 hover:underline">legal@yourhomesecured.com</a><br />
+                  Email: <a href="mailto:admin@yourhomesecured.com" className="text-blue-600 hover:underline">admin@yourhomesecured.com</a><br />
                   Phone: 1-800-HOME-SEC<br />
                   Address: 123 Security Lane, Safe City, SC 12345
                 </p>

@@ -152,7 +152,7 @@ export const TCPADisclaimer: React.FC = () => {
               <h3 className="text-xl font-medium text-gray-800 mb-3">Email Communications</h3>
               <ul className="list-disc pl-6 text-gray-600 mb-4">
                 <li>Click "Unsubscribe" in any email</li>
-                <li>Email us directly at <a href="mailto:unsubscribe@yourhomesecured.com" className="text-blue-600 hover:underline">unsubscribe@yourhomesecured.com</a></li>
+                <li>Email us directly at <a href="mailto:admin@yourhomesecured.com" className="text-blue-600 hover:underline">admin@yourhomesecured.com</a></li>
               </ul>
             </section>
 
@@ -190,7 +190,7 @@ export const TCPADisclaimer: React.FC = () => {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700">
                   <strong>YourHomeSecured TCPA Compliance</strong><br />
-                  Email: <a href="mailto:tcpa@yourhomesecured.com" className="text-blue-600 hover:underline">tcpa@yourhomesecured.com</a><br />
+                  Email: <a href="mailto:admin@yourhomesecured.com" className="text-blue-600 hover:underline">admin@yourhomesecured.com</a><br />
                   Phone: 1-800-HOME-SEC<br />
                   Mail: 123 Security Lane, Safe City, SC 12345<br />
                   <br />
