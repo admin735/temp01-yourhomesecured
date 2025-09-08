@@ -12,41 +12,98 @@ export const loadJornayaScript = (): Promise<void> => {
       return;
     }
 
-    // Check if script already exists
     if (document.getElementById('LeadiDscript_campaign')) {
       resolve();
       return;
     }
 
-    // Create and inject the script directly (like your manual test)
     const script = document.createElement('script');
     script.id = 'LeadiDscript_campaign';
     script.type = 'text/javascript';
     script.async = true;
     script.src = `//create.lidstatic.com/campaign/${complianceConfig.jornaya.campaignId}.js?snippet_version=2`;
     
-    script.onload = () => {
-      console.log('Jornaya script loaded successfully');
-      resolve();
-    };
-    
-    script.onerror = () => {
-      console.error('Failed to load Jornaya script');
-      resolve(); // Resolve anyway to not block
-    };
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
     
     document.body.appendChild(script);
 
-    // Also add the noscript fallback
     const noscript = document.createElement('noscript');
     noscript.innerHTML = `<img src='//create.leadid.com/noscript.gif?lac=${complianceConfig.jornaya.accountId}&lck=${complianceConfig.jornaya.campaignId}&snippet_version=2' />`;
     document.body.appendChild(noscript);
   });
 };
 
-/**
- * Capture LeadiD from the hidden field
- */
+export const loadTrustedFormScript = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (!complianceConfig.trustedForm.enabled) {
+      resolve();
+      return;
+    }
+
+    if (document.getElementById('trustedform_script')) {
+      resolve();
+      return;
+    }
+
+    const tf = document.createElement('script');
+    tf.id = 'trustedform_script';
+    tf.type = 'text/javascript';
+    tf.async = true;
+    
+    tf.src = ("https:" == document.location.protocol ? 'https' : 'http') +
+      '://api.trustedform.com/trustedform.js?field=' + 
+      (complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl') +
+      '&use_tagged_consent=true&l=' +
+      new Date().getTime() + Math.random();
+    
+    tf.onload = () => {
+      const noscript = document.createElement('noscript');
+      const img = document.createElement('img');
+      img.src = 'https://api.trustedform.com/ns.gif';
+      noscript.appendChild(img);
+      document.body.appendChild(noscript);
+      resolve();
+    };
+    
+    tf.onerror = () => resolve();
+    
+    const s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(tf, s);
+  });
+};
+
+export const loadTrustedFormScriptAlternative = (): Promise<void> => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.id = 'TrustedFormScript';
+    script.type = 'text/javascript';
+    script.async = true;
+    
+    const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
+    const provideReferrer = complianceConfig.trustedForm.provideReferrer || true;
+    const invertFieldSensitivity = complianceConfig.trustedForm.invertFieldSensitivity || false;
+    
+    script.src = `https://api.trustedform.com/trustedform.js?provide_referrer=${provideReferrer}&field=${encodeURIComponent(fieldName)}&invert_field_sensitivity=${invertFieldSensitivity}`;
+    
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
+    
+    document.head.appendChild(script);
+  });
+};
+
+export const captureTrustedFormCert = (): string | null => {
+  if (!complianceConfig.trustedForm.enabled) {
+    return null;
+  }
+  
+  const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
+  const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
+  
+  return certField?.value || null;
+};
+
 export const captureLeadiD = (): string | null => {
   if (!complianceConfig.jornaya.enabled) return null;
   
@@ -54,9 +111,6 @@ export const captureLeadiD = (): string | null => {
   return leadidField ? leadidField.value : null;
 };
 
-/**
- * Get all compliance data for submission
- */
 export const getComplianceData = (): ComplianceData => {
   const data: ComplianceData = {};
   
@@ -69,40 +123,52 @@ export const getComplianceData = (): ComplianceData => {
     }
   }
   
-  // Future: Add TrustedForm data capture here
   if (complianceConfig.trustedForm.enabled) {
-    // TrustedForm implementation
+    const certUrl = captureTrustedFormCert();
+    if (certUrl) {
+      data.trusted_form_cert = certUrl;
+      data.trusted_form_timestamp = new Date().toISOString();
+      data.page_url = window.location.href;
+    }
   }
   
   return data;
 };
 
-/**
- * Check if compliance services are ready
- */
 export const isComplianceReady = (): boolean => {
   if (!complianceConfig.jornaya.enabled && !complianceConfig.trustedForm.enabled) {
-    return true; // No compliance needed, so we're "ready"
+    return true;
   }
+  
+  let ready = true;
   
   if (complianceConfig.jornaya.enabled) {
     const leadId = captureLeadiD();
-    if (!leadId) return false;
+    if (!leadId) {
+      ready = false;
+    }
   }
   
-  // Future: Check TrustedForm readiness
+  if (complianceConfig.trustedForm.enabled) {
+    const certUrl = captureTrustedFormCert();
+    if (!certUrl) {
+      ready = false;
+    }
+  }
   
-  return true;
+  return ready;
 };
 
-/**
- * Clean up compliance scripts (for SPA navigation)
- */
 export const cleanupComplianceScripts = (): void => {
-  // Remove Jornaya scripts if they exist
   const jornayaScript = document.getElementById('LeadiDscript');
   const jornayaCampaignScript = document.getElementById('LeadiDscript_campaign');
   
   if (jornayaScript) jornayaScript.remove();
   if (jornayaCampaignScript) jornayaCampaignScript.remove();
+  
+  const trustedFormScript = document.getElementById('TrustedFormScript');
+  if (trustedFormScript) trustedFormScript.remove();
+
+  const trustedFormFields = document.querySelectorAll('input[name^="xxTrustedFormCertUrl"]');
+  trustedFormFields.forEach(field => field.remove());
 };

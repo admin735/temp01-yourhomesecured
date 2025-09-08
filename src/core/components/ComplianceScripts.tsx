@@ -1,22 +1,11 @@
 import { useEffect } from 'react';
-import { loadJornayaScript } from '../utils/compliance';
 import { complianceConfig } from '../../config/compliance.config';
 
 export const ComplianceScripts: React.FC = () => {
   useEffect(() => {
-    // Load scripts on component mount
-    const loadScripts = async () => {
-      if (complianceConfig.jornaya.enabled) {
-        await loadJornayaScript();
-      }
-      
-      // Future: Load TrustedForm script
-      if (complianceConfig.trustedForm.enabled) {
-        // Load TrustedForm
-      }
-    };
-
-    loadScripts();
+    // Compliance scripts now load at contact form step instead of page load
+    // This provides better compliance focus and performance
+    console.log('Page-level compliance: Scripts will load at contact form step');
   }, []);
 
   // This component doesn't render anything visible

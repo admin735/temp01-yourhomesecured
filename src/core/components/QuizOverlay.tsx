@@ -1,18 +1,19 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2, CheckCircle, XCircle, AlertCircle, Shield } from 'lucide-react';
 import { quizConfig } from '../../config/quiz.config';
 import { validateField } from '../utils/validation';
-import { getSessionData, storeQuizAnswer, storeValidation, storeFormField, getFinalSubmissionPayload } from '../utils/session';
+import { getSessionData, storeQuizAnswer, storeValidation, storeFormField, getFinalSubmissionPayload, storeComplianceData } from '../utils/session';
 import { config } from '../../config/environment.config';
 import { withErrorBoundary, reportError } from '../utils/errorHandler';
 import { OTPModal } from './OTPModal';
 import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
 import { useCompliance } from '../hooks/useCompliance';
-import { storeComplianceData } from '../utils/session';
-import { loadJornayaScript } from '../utils/compliance'; 
-
+import { 
+  loadJornayaScript, 
+  loadTrustedFormScript, 
+  captureTrustedFormCert
+} from '../utils/compliance';
 
 interface EmailValidationState {
   loading: boolean;
@@ -25,6 +26,8 @@ interface PhoneValidationState {
   loading: boolean;
   status: 'valid' | 'invalid' | null;
   error: string | null;
+  message?: string;
+  phoneType?: string;
 }
 
 interface QuizOverlayProps {
@@ -90,7 +93,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     last_name: '',
     phone: '',
     email: '',
-    leadid_token: ''
+    leadid_token: '',
+    xxTrustedFormCertUrl: ''
   });
   
   // Helper function to detect autofilled phone
@@ -99,13 +103,12 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     return cleaned.length === 10 && phoneValidationState.status === null;
   };
   
-// Email autofill detection with proper dependencies
+  // Email autofill detection with proper dependencies
   useEffect(() => {
     if (currentStep === steps.length - 1) {
       const timer = setTimeout(() => {
         // Auto-validate email if it has content but no validation state
         if (quizData.email && quizData.email.includes('@') && emailValidationState.valid === null) {
-          console.log('Auto-validating email:', quizData.email);
           handleEmailValidation(quizData.email);
         }
       }, 800); // Slightly longer delay for autofill to complete
@@ -114,44 +117,109 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
-  // Jornaya LeadiD capture effect
+  // Load compliance scripts when quiz opens (not just at contact form)
+  useEffect(() => {
+    if (isOpen) {
+      
+      const loadTrustedForm = async () => {
+        if (complianceConfig.trustedForm.enabled) {
+          try {
+            await loadTrustedFormScript();
+            
+            // Give it time to initialize
+            setTimeout(() => {
+              const field = document.querySelector('input[name="xxTrustedFormCertUrl"]');
+            }, 2000);
+          } catch (error) {
+          }
+        }
+      };
+      
+      loadTrustedForm();
+    }
+  }, [isOpen]);
+  
+  // Keep the Jornaya loading at contact form
   useEffect(() => {
     if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      console.log('Contact form reached, loading Jornaya script');
-      
-      // Load the Jornaya script first
       loadJornayaScript().then(() => {
-        console.log('Jornaya script loaded, starting LeadiD capture');
-        
-        let attempts = 0;
-        const maxAttempts = 30; // 15 seconds with 500ms intervals
-        
-        const checkForLeadiD = () => {
-          const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-          
-          if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-            console.log('LeadiD captured:', leadidInput.value);
-            setQuizData(prev => ({
-              ...prev,
-              leadid_token: leadidInput.value
-            }));
-            storeFormField('leadid_token', leadidInput.value);
-            return true; // Found it
-          }
-          
-          attempts++;
-          if (attempts < maxAttempts) {
-            setTimeout(checkForLeadiD, 500);
-          } else {
-            console.warn('LeadiD not found after maximum attempts');
-          }
-        };
-        
-        // Wait 1 second after script loads before checking
-        setTimeout(checkForLeadiD, 1000);
+        startJornayaCapture();
       });
     }
   }, [currentStep, steps.length]);
+  
+  // Helper function for Jornaya capture
+  const startJornayaCapture = () => {
+    
+    let attempts = 0;
+    const maxAttempts = 30; // 15 seconds with 500ms intervals
+    
+    const checkForLeadiD = () => {
+      const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+      
+      if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+        setQuizData(prev => ({
+          ...prev,
+          leadid_token: leadidInput.value
+        }));
+        storeFormField('leadid_token', leadidInput.value);
+        storeComplianceData({ 
+          leadid_token: leadidInput.value,
+          leadid_timestamp: new Date().toISOString()
+        });
+        return true; // Found it
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkForLeadiD, 500);
+      } else {
+      }
+    };
+    
+    // Wait 1 second after script loads before checking
+    setTimeout(checkForLeadiD, 1000);
+  };
+  
+  // Helper function for TrustedForm capture
+  const startTrustedFormCapture = () => {
+    
+    let attempts = 0;
+    const maxAttempts = 30; // Increase to 15 seconds
+    
+    const checkForCertificate = () => {
+      const certUrl = captureTrustedFormCert();
+      
+      if (certUrl) {
+        
+        // Store in quiz data for form submission
+        setQuizData(prev => ({
+          ...prev,
+          xxTrustedFormCertUrl: certUrl
+        }));
+        
+        // Store in form fields
+        storeFormField('xxTrustedFormCertUrl', certUrl);
+        
+        // Store in compliance data
+        storeComplianceData({ 
+          trusted_form_cert: certUrl,
+          page_url: window.location.href
+        });
+        
+        return true; // Found it
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkForCertificate, 500);
+      } else {
+      }
+    };
+    
+    // Wait 3 seconds before first check (TrustedForm needs time to generate cert)
+    setTimeout(checkForCertificate, 3000);
+  };
 
   // After qualifying questions, before contact
   const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
@@ -298,7 +366,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     
     // Skip if unchanged
     if (email === lastValidatedValues.email) {
-      console.log('Email unchanged, skipping validation');
       return;
     }
     
@@ -430,7 +497,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     if (cleaned.length !== 10) return;
     if (phone === lastValidatedValues.phone) return;
     
-   setPhoneValidationState({ loading: true, status: null, error: null });
+    setPhoneValidationState({ loading: true, status: null, error: null });
     
     try {
       const sessionData = getSessionData();
@@ -457,7 +524,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           setPhoneValidationState({ 
             loading: false, 
             status: 'needs_otp',
-           error: null,
+            error: null,
             message: result.message || `Verification required`,
             phoneType: data.phone_type
           });
@@ -466,7 +533,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           setPhoneValidationState({ 
             loading: false, 
             status: 'valid',
-           error: null,
+            error: null,
             message: 'Phone number verified',
             phoneType: data.phone_type
           });
@@ -476,7 +543,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         setPhoneValidationState({ 
           loading: false, 
           status: 'invalid',
-         error: null,
+          error: null,
           message: result.error || 'Please enter a valid phone number'
         });
       }
@@ -485,7 +552,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       setPhoneValidationState({ 
         loading: false, 
         status: 'invalid', 
-       error: null,
+        error: null,
         message: 'Unable to validate phone number. Please try again.' 
       });
     }
@@ -543,15 +610,15 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   // Separate function for resending OTP
   const handleResendOTP = () => {
-    console.log('Resend button clicked - calling handleSendOTP with true');
-    handleSendOTP(true);
+    console.log('Resend button clicked - calling handleSendOTP');
+    handleSendOTP();
   };
 
   // Cancel Validation Handler
   const handleCancelValidation = () => {
     setShowValidationPopup(false);
-   setPhoneValidationState({ loading: false, status: null, error: null });
-   handleInputChange('phone', '');
+    setPhoneValidationState({ loading: false, status: null, error: null });
+    handleInputChange('phone', '');
   };
 
   // Verify OTP Handler
@@ -583,6 +650,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         setPhoneValidationState({ 
           loading: false, 
           status: 'valid',
+          error: null,
           message: 'Phone verified successfully'
         });
         setShowOTPModal(false);
@@ -596,6 +664,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       return { success: false, message: 'Verification failed' };
     }
   };
+
   const canProceed = () => {
     if (currentStep === 0) {
       return validationState.valid === true;
@@ -673,7 +742,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   const handleFinalSubmission = async () => {
     try {
-      // Get EVERYTHING
+      // Get EVERYTHING including TrustedForm data
+      const sessionData = getSessionData();
       const payload = {
         ...getFinalSubmissionPayload(),
         consent: {
@@ -681,8 +751,14 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           tcpa_timestamp: consentTimestamp,
           tcpa_text: quizConfig.submission.consent.text,
           tcpa_version: '2025_v1'
-        }
+        },
+        // Include TrustedForm certificate if captured
+        ...(quizData.xxTrustedFormCertUrl && {
+          xxTrustedFormCertUrl: quizData.xxTrustedFormCertUrl
+        })
       };
+      
+      console.log('Final submission payload:', payload);
       
       const response = await fetch(config.api.leadSubmit, {
         method: 'POST',
@@ -694,6 +770,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       // Log for debugging only
       if (config.features.debugMode) {
+        console.log('Final submission payload:', payload);
         console.log('Submission result:', result);
       }
       
@@ -996,6 +1073,16 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     <input
                       id="leadid_token"
                       name="universal_leadid"
+                      type="hidden"
+                      value=""
+                      style={{ display: 'none' }}
+                    />
+                  )}
+                  
+                  {/* TrustedForm Certificate hidden input */}
+                  {complianceConfig.trustedForm.enabled && (
+                    <input
+                      name={complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl'}
                       type="hidden"
                       value=""
                       style={{ display: 'none' }}
