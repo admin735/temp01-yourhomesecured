@@ -117,6 +117,7 @@ export const loadTrustedFormScriptAlternative = (): Promise<void> => {
     
     console.log('TrustedForm script added to page');
   });
+};
 
 /**
  * Capture TrustedForm Certificate URL
