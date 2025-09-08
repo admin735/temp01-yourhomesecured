@@ -104,6 +104,13 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     if (currentStep === steps.length - 1) {
       const timer = setTimeout(() => {
         // Auto-validate email if it has content but no validation state
+      // ADD THIS DEBUG BLOCK:
+      console.log('Compliance config debug:', {
+        jornayaEnabled: complianceConfig.jornaya.enabled,
+        trustedFormEnabled: complianceConfig.trustedForm.enabled,
+        fullConfig: complianceConfig
+      });
+      
         if (quizData.email && quizData.email.includes('@') && emailValidationState.valid === null) {
           console.log('Auto-validating email:', quizData.email);
           handleEmailValidation(quizData.email);
