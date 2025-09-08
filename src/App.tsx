@@ -7,6 +7,7 @@ import { HeroLayout } from './core/layouts/HeroLayout';
 import { PrivacyPolicy } from './core/pages/PrivacyPolicy';
 import { TermsOfService } from './core/pages/TermsOfService';
 import { TCPADisclaimer } from './core/pages/TCPADisclaimer';
+import { Contact } from './core/pages/Contact';
 
 function App() {
   // Temporary debugging code for environment variables
@@ -35,6 +36,9 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/tcpa-disclaimer" element={<TCPADisclaimer />} />
+          
+          {/* Contact page */}
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </Router>
     </ErrorBoundary>
