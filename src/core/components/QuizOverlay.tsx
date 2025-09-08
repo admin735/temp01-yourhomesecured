@@ -114,84 +114,42 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
-  // Combined compliance scripts loading effect
+  // Jornaya LeadiD capture effect
   useEffect(() => {
-    if (currentStep === steps.length - 1) {
-      console.log('Contact form reached, loading compliance scripts');
+    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
+      console.log('Contact form reached, loading Jornaya script');
       
-      const loadComplianceScripts = async () => {
-        // Load Jornaya if enabled
-        if (complianceConfig.jornaya.enabled) {
-          console.log('Loading Jornaya script...');
-          await loadJornayaScript();
-          console.log('Jornaya script loaded, starting LeadiD capture');
-          
-          let jornayaAttempts = 0;
-          const maxJornayaAttempts = 30; // 15 seconds with 500ms intervals
-          
-          const checkForLeadiD = () => {
-            const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-            
-            if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-              console.log('LeadiD captured:', leadidInput.value);
-              setQuizData(prev => ({
-                ...prev,
-                leadid_token: leadidInput.value
-              }));
-              storeFormField('leadid_token', leadidInput.value);
-              return true; // Found it
-            }
-            
-            jornayaAttempts++;
-            if (jornayaAttempts < maxJornayaAttempts) {
-              setTimeout(checkForLeadiD, 500);
-            } else {
-              console.warn('LeadiD not found after maximum attempts');
-            }
-          };
-          
-          // Wait 1 second after script loads before checking
-          setTimeout(checkForLeadiD, 1000);
-        }
+      // Load the Jornaya script first
+      loadJornayaScript().then(() => {
+        console.log('Jornaya script loaded, starting LeadiD capture');
         
-        // Load TrustedForm if enabled
-        if (complianceConfig.trustedForm.enabled) {
-          console.log('Loading TrustedForm script...');
-          await loadTrustedFormScript();
-          console.log('TrustedForm script loaded, starting certificate capture');
-          
-          let trustedFormAttempts = 0;
-          const maxTrustedFormAttempts = 30; // 15 seconds with 500ms intervals
-          
-          const checkForTrustedFormCert = () => {
-            const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
-            const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
-            
-            if (certField && certField.value && certField.value.length > 0 && 
-                certField.value !== 'https://cert.trustedform.com/pending') {
-              console.log('TrustedForm certificate captured:', certField.value);
-              setQuizData(prev => ({
-                ...prev,
-                xxTrustedFormCertUrl: certField.value
-              }));
-              storeFormField('xxTrustedFormCertUrl', certField.value);
-              return true; // Found it
-            }
-            
-            trustedFormAttempts++;
-            if (trustedFormAttempts < maxTrustedFormAttempts) {
-              setTimeout(checkForTrustedFormCert, 500);
-            } else {
-              console.warn('TrustedForm certificate not found after maximum attempts');
-            }
-          };
-          
-          // Wait 2 seconds after script loads before checking (TrustedForm needs more time)
-          setTimeout(checkForTrustedFormCert, 2000);
-        }
-      };
+        let attempts = 0;
+        const maxAttempts = 30; // 15 seconds with 500ms intervals
         
-      loadComplianceScripts();
+        const checkForLeadiD = () => {
+          const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+          
+          if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+            console.log('LeadiD captured:', leadidInput.value);
+            setQuizData(prev => ({
+              ...prev,
+              leadid_token: leadidInput.value
+            }));
+            storeFormField('leadid_token', leadidInput.value);
+            return true; // Found it
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(checkForLeadiD, 500);
+          } else {
+            console.warn('LeadiD not found after maximum attempts');
+          }
+        };
+        
+        // Wait 1 second after script loads before checking
+        setTimeout(checkForLeadiD, 1000);
+      });
     }
   }, [currentStep, steps.length]);
 
