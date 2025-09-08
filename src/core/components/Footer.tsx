@@ -72,6 +72,11 @@ export const Footer: React.FC = () => {
             and/or our security partners regarding home protection solutions via phone, 
             text, or email. Consent is not a condition of purchase. Message and data rates may apply.
           </p>
+          <p className="text-xs text-gray-500 leading-relaxed text-center">
+            This website is not part of the Facebook website or Facebook Inc. Additionally, 
+            this site is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of 
+            FACEBOOK, Inc.
+          </p>
         </div>
       </div>
     </footer>
