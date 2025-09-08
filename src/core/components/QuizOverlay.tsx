@@ -118,40 +118,50 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
-  // Load compliance scripts when quiz opens (not just at contact form)
+  // Combined Compliance Scripts Loading Effect
   useEffect(() => {
-    if (isOpen) {
-      console.log('Quiz opened, loading TrustedForm script immediately');
+    if (currentStep === steps.length - 1) {
+      console.log('Contact form reached, loading compliance scripts');
       
-      const loadTrustedForm = async () => {
+      // Load both compliance scripts in parallel
+      const loadComplianceScripts = async () => {
+        const promises = [];
+        
+        // Load Jornaya if enabled
+        if (complianceConfig.jornaya.enabled) {
+          console.log('✅ Jornaya condition met, loading...');
+          promises.push(loadJornayaScript());
+        }
+        
+        // Load TrustedForm if enabled
         if (complianceConfig.trustedForm.enabled) {
-          try {
-            await loadTrustedFormScript();
-            console.log('TrustedForm loaded on quiz open');
-            
-            // Give it time to initialize
-            setTimeout(() => {
-              const field = document.querySelector('input[name="xxTrustedFormCertUrl"]');
-              console.log('Field check after load:', field);
-              console.log('Field value:', field?.value);
-            }, 2000);
-          } catch (error) {
-            console.error('Error loading TrustedForm:', error);
+          console.log('🔍 About to check TrustedForm condition...');
+          console.log('✅ TrustedForm enabled check:', complianceConfig.trustedForm.enabled);
+          console.log('✅ TrustedForm condition met! Starting load...');
+          console.log('🔍 About to call loadTrustedFormScript()...');
+          promises.push(loadTrustedFormScript());
+        }
+        
+        // Wait for all scripts to load
+        try {
+          await Promise.all(promises);
+          console.log('All compliance scripts loaded');
+          
+          // Start capture attempts for both services
+          if (complianceConfig.jornaya.enabled) {
+            startJornayaCapture();
           }
+          
+          if (complianceConfig.trustedForm.enabled) {
+            startTrustedFormCapture();
+          }
+        } catch (error) {
+          console.error('Error loading compliance scripts:', error);
         }
       };
       
-      loadTrustedForm();
-    }
-  }, [isOpen]);
-  
-  // Keep the Jornaya loading at contact form
-  useEffect(() => {
-    if (currentStep === steps.length - 1 && complianceConfig.jornaya.enabled) {
-      console.log('Contact form reached, loading Jornaya');
-      loadJornayaScript().then(() => {
-        startJornayaCapture();
-      });
+      // Call the async function
+      loadComplianceScripts();
     }
   }, [currentStep, steps.length]);
   
