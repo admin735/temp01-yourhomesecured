@@ -4,22 +4,17 @@ import { complianceConfig } from '../../config/compliance.config';
 
 export const ComplianceScripts: React.FC = () => {
   useEffect(() => {
-    // Load scripts on component mount
     const loadScripts = async () => {
       console.log('Initializing compliance scripts...');
       
-      // Load Jornaya if enabled
+      // Only load Jornaya here if you want it on page load
+      // Otherwise, remove this too and load both at contact form step
       if (complianceConfig.jornaya.enabled) {
         console.log('Loading Jornaya script...');
         await loadJornayaScript();
       }
       
-      // Load TrustedForm if enabled
-      if (complianceConfig.trustedForm.enabled) {
-        console.log('Loading TrustedForm script...');
-        await loadTrustedFormScript();
-      }
-      
+      // TrustedForm will be loaded at contact form step instead
       console.log('Compliance scripts initialization complete');
     };
 
