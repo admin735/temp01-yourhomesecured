@@ -8,8 +8,15 @@ export const Footer: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-8 mb-8">
           {/* Left side - Company info */}
           <div>
-            <h3 className="text-2xl font-bold text-white mb-4">YourHomeSecured</h3>
-            <p className="text-gray-400 leading-relaxed max-w-md">
+            <div className="flex items-center gap-3 mb-4">
+              <img 
+                src="/yourhomesecured-330x330-website (1).svg" 
+                alt="YourHomeSecured Logo" 
+                className="w-8 h-8"
+              />
+              <h3 className="text-2xl font-bold text-white">YourHomeSecured</h3>
+            </div>
+            <p className="text-gray-400 leading-relaxed max-w-md text-sm">
               Your trusted partner for comprehensive home security solutions. 
               We connect homeowners with top-rated security providers to ensure 
               your family's safety and peace of mind.
