@@ -10,7 +10,11 @@ import { PhoneValidationPopup } from './PhoneValidationPopup';
 import { complianceConfig } from '../../config/compliance.config';
 import { useCompliance } from '../hooks/useCompliance';
 import { storeComplianceData } from '../utils/session';
-import { loadJornayaScript } from '../utils/compliance'; 
+import { 
+  loadJornayaScript, 
+  loadTrustedFormScript, 
+  captureTrustedFormCert 
+} from '../utils/compliance';
 
 
 interface EmailValidationState {
@@ -89,7 +93,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     last_name: '',
     phone: '',
     email: '',
-    leadid_token: ''
+    leadid_token: '',
+    xxTrustedFormCertUrl: ''
   });
   
   // Helper function to detect autofilled phone
@@ -113,93 +118,123 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, quizData.email]); // Add quizData.email as dependency
   
-  // Jornaya LeadiD capture effect
+  // Combined Compliance Scripts Loading Effect
   useEffect(() => {
     if (currentStep === steps.length - 1) {
       console.log('Contact form reached, loading compliance scripts');
       
+      // Load both compliance scripts in parallel
       const loadComplianceScripts = async () => {
+        const promises = [];
+        
         // Load Jornaya if enabled
         if (complianceConfig.jornaya.enabled) {
           console.log('✅ Jornaya condition met, loading...');
-          await loadJornayaScript();
-          console.log('Jornaya script loaded, starting LeadiD capture');
-          
-          let attempts = 0;
-          const maxAttempts = 30; // 15 seconds with 500ms intervals
-          
-          const checkForLeadiD = () => {
-            const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-            
-            if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-              console.log('LeadiD captured:', leadidInput.value);
-              setQuizData(prev => ({
-                ...prev,
-                leadid_token: leadidInput.value
-              }));
-              storeFormField('leadid_token', leadidInput.value);
-              return true; // Found it
-            }
-            
-            attempts++;
-            if (attempts < maxAttempts) {
-              setTimeout(checkForLeadiD, 500);
-            } else {
-              console.warn('LeadiD not found after maximum attempts');
-            }
-          };
-          
-          // Wait 1 second after script loads before checking
-          setTimeout(checkForLeadiD, 1000);
+          promises.push(loadJornayaScript());
         }
         
-        // ADD DETAILED TRUSTEDFORM LOGGING:
-        console.log('🔍 About to check TrustedForm condition...');
-        console.log('🔍 TrustedForm enabled check:', complianceConfig.trustedForm.enabled);
+          promises.push(loadTrustedFormScript());
+        }
+        
+        // Wait for all scripts to load
+        await Promise.all(promises);
+        console.log('All compliance scripts loaded');
+        
+        // Start capture attempts for both services
+        if (complianceConfig.jornaya.enabled) {
+          startJornayaCapture();
+        }
         
         if (complianceConfig.trustedForm.enabled) {
-          console.log('✅ TrustedForm condition met! Starting load...');
-          console.log('🔍 About to call loadTrustedFormScript()...');
-          
-          try {
-            await loadTrustedFormScript();
-            console.log('✅ loadTrustedFormScript() completed');
-          } catch (error) {
-            console.error('❌ Error in loadTrustedFormScript():', error);
-          }
-          
-          console.log('✅ TrustedForm script loaded, starting certificate capture');
-          
-          let trustedFormAttempts = 0;
-          const maxTrustedFormAttempts = 30; // 15 seconds with 500ms intervals
-          
-          const checkForTrustedFormCert = () => {
-            const certInput = document.querySelector(`input[name="${complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl'}"]`) as HTMLInputElement;
-            
-            if (certInput && certInput.value && certInput.value.length > 0) {
-              console.log('TrustedForm certificate captured:', certInput.value);
-              storeFormField(complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl', certInput.value);
-              return true; // Found it
-            }
-            
-            trustedFormAttempts++;
-            if (trustedFormAttempts < maxTrustedFormAttempts) {
-              setTimeout(checkForTrustedFormCert, 500);
-            } else {
-              console.warn('TrustedForm certificate not found after maximum attempts');
-            }
-          };
-          
-          // Wait 2 seconds after script loads before checking (TrustedForm needs more time)
-          setTimeout(checkForTrustedFormCert, 2000);
-        } else {
-          console.log('❌ TrustedForm condition NOT met');
+          startTrustedFormCapture();
         }
       };
       
-      loadComplianceScripts();
+      loadComplianceScripts().catch(error => {
+        console.error('Error loading compliance scripts:', error);
+      });
     }
   }, [currentStep, steps.length]);
+  
+  // Helper function for Jornaya capture
+  const startJornayaCapture = () => {
+    console.log('Jornaya script loaded, starting LeadiD capture');
+    
+    let attempts = 0;
+    const maxAttempts = 30; // 15 seconds with 500ms intervals
+    
+    const checkForLeadiD = () => {
+      const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
+      
+      if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
+        console.log('LeadiD captured:', leadidInput.value);
+        setQuizData(prev => ({
+          ...prev,
+          leadid_token: leadidInput.value
+        }));
+        storeFormField('leadid_token', leadidInput.value);
+        storeComplianceData({ 
+          leadid_token: leadidInput.value,
+          leadid_timestamp: new Date().toISOString()
+        });
+        return true; // Found it
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        setTimeout(checkForLeadiD, 500);
+      } else {
+        console.warn('LeadiD not found after maximum attempts');
+      }
+    };
+    
+    // Wait 1 second after script loads before checking
+    setTimeout(checkForLeadiD, 1000);
+  };
+  
+  // Helper function for TrustedForm capture
+  const startTrustedFormCapture = () => {
+    console.log('TrustedForm script loaded, starting certificate capture');
+    
+    let attempts = 0;
+    const maxAttempts = 20; // 10 seconds with 500ms intervals
+    
+    const checkForCertificate = () => {
+      const certUrl = captureTrustedFormCert();
+      
+      if (certUrl) {
+        console.log('✅ TrustedForm certificate captured:', certUrl);
+        
+        // Store in quiz data for form submission
+        setQuizData(prev => ({
+          ...prev,
+          xxTrustedFormCertUrl: certUrl
+        }));
+        
+        // Store in form fields
+        storeFormField('xxTrustedFormCertUrl', certUrl);
+        
+        // Store in compliance data
+        storeComplianceData({ 
+          trusted_form_cert: certUrl,
+          page_url: window.location.href
+        });
+        
+        return true; // Found it
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        console.log(`TrustedForm certificate not found after ${attempts} attempts`);
+        setTimeout(checkForCertificate, 500);
+      } else {
+        console.warn('⚠️ TrustedForm certificate not found after maximum attempts');
+      }
+    };
+    
+    // Wait 2 seconds after script loads before checking (TrustedForm needs more time to initialize)
+    setTimeout(checkForCertificate, 2000);
+  };
 
   // After qualifying questions, before contact
   const shouldShowLoading = currentStep === quizConfig.steps.length && !showThankYou;
@@ -721,7 +756,8 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
 
   const handleFinalSubmission = async () => {
     try {
-      // Get EVERYTHING
+      // Get EVERYTHING including TrustedForm data
+      const sessionData = getSessionData();
       const payload = {
         ...getFinalSubmissionPayload(),
         consent: {
@@ -729,8 +765,14 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
           tcpa_timestamp: consentTimestamp,
           tcpa_text: quizConfig.submission.consent.text,
           tcpa_version: '2025_v1'
-        }
+        },
+        // Include TrustedForm certificate if captured
+        ...(quizData.xxTrustedFormCertUrl && {
+          xxTrustedFormCertUrl: quizData.xxTrustedFormCertUrl
+        })
       };
+      
+      console.log('Final submission payload:', payload);
       
       const response = await fetch(config.api.leadSubmit, {
         method: 'POST',
