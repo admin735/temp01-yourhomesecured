@@ -9,6 +9,15 @@ import { TermsOfService } from './core/pages/TermsOfService';
 import { TCPADisclaimer } from './core/pages/TCPADisclaimer';
 
 function App() {
+  // Temporary debugging code for environment variables
+  console.log('Environment Variables Check:', {
+    emailValidator: import.meta.env.VITE_EMAIL_VALIDATOR,
+    zipValidator: import.meta.env.VITE_ZIP_VALIDATOR,
+    phoneValidator: import.meta.env.VITE_PHONE_VALIDATOR,
+    leadWebhook: import.meta.env.VITE_LEAD_WEBHOOK,
+    env: import.meta.env.VITE_ENV
+  });
+
   useEffect(() => {
     getSessionData();
   }, []);
