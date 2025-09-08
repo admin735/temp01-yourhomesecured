@@ -109,7 +109,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       const timer = setTimeout(() => {
         // Auto-validate email if it has content but no validation state
         if (quizData.email && quizData.email.includes('@') && emailValidationState.valid === null) {
-          console.log('Auto-validating email:', quizData.email);
+          if (config.features.debugMode) {
+            console.log('Auto-validating email:', quizData.email);
+          }
           handleEmailValidation(quizData.email);
         }
       }, 800); // Slightly longer delay for autofill to complete
@@ -121,31 +123,23 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   // Combined Compliance Scripts Loading Effect
   useEffect(() => {
     if (currentStep === steps.length - 1) {
-      console.log('Contact form reached, loading compliance scripts');
-      
       // Load both compliance scripts in parallel
       const loadComplianceScripts = async () => {
         const promises = [];
         
         // Load Jornaya if enabled
         if (complianceConfig.jornaya.enabled) {
-          console.log('✅ Jornaya condition met, loading...');
           promises.push(loadJornayaScript());
         }
         
         // Load TrustedForm if enabled
         if (complianceConfig.trustedForm.enabled) {
-          console.log('🔍 About to check TrustedForm condition...');
-          console.log('✅ TrustedForm enabled check:', complianceConfig.trustedForm.enabled);
-          console.log('✅ TrustedForm condition met! Starting load...');
-          console.log('🔍 About to call loadTrustedFormScript()...');
           promises.push(loadTrustedFormScript());
         }
         
         // Wait for all scripts to load
         try {
           await Promise.all(promises);
-          console.log('All compliance scripts loaded');
           
           // Start capture attempts for both services
           if (complianceConfig.jornaya.enabled) {
@@ -156,7 +150,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
             startTrustedFormCapture();
           }
         } catch (error) {
-          console.error('Error loading compliance scripts:', error);
+          if (config.features.debugMode) {
+            console.error('Error loading compliance scripts:', error);
+          }
         }
       };
       
@@ -167,8 +163,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   
   // Helper function for Jornaya capture
   const startJornayaCapture = () => {
-    console.log('Jornaya script loaded, starting LeadiD capture');
-    
     let attempts = 0;
     const maxAttempts = 30; // 15 seconds with 500ms intervals
     
@@ -176,7 +170,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
       
       if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-        console.log('LeadiD captured:', leadidInput.value);
+        if (config.features.debugMode) {
+          console.log('LeadiD captured:', leadidInput.value);
+        }
         setQuizData(prev => ({
           ...prev,
           leadid_token: leadidInput.value
@@ -193,7 +189,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       if (attempts < maxAttempts) {
         setTimeout(checkForLeadiD, 500);
       } else {
-        console.warn('LeadiD not found after maximum attempts');
+        if (config.features.debugMode) {
+          console.warn('LeadiD not found after maximum attempts');
+        }
       }
     };
     
@@ -203,8 +201,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
   
   // Helper function for TrustedForm capture
   const startTrustedFormCapture = () => {
-    console.log('TrustedForm script loaded, starting certificate capture');
-    
     let attempts = 0;
     const maxAttempts = 30; // Increase to 15 seconds
     
@@ -212,7 +208,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       const certUrl = captureTrustedFormCert();
       
       if (certUrl) {
-        console.log('✅ TrustedForm certificate captured:', certUrl);
+        if (config.features.debugMode) {
+          console.log('TrustedForm certificate captured:', certUrl);
+        }
         
         // Store in quiz data for form submission
         setQuizData(prev => ({
@@ -234,10 +232,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       attempts++;
       if (attempts < maxAttempts) {
-        console.log(`Attempt ${attempts}: Certificate not ready yet`);
         setTimeout(checkForCertificate, 500);
       } else {
-        console.warn('⚠️ TrustedForm certificate not found after maximum attempts');
+        if (config.features.debugMode) {
+          console.warn('TrustedForm certificate not found after maximum attempts');
+        }
       }
     };
     
@@ -390,7 +389,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     
     // Skip if unchanged
     if (email === lastValidatedValues.email) {
-      console.log('Email unchanged, skipping validation');
+      if (config.features.debugMode) {
+        console.log('Email unchanged, skipping validation');
+      }
       return;
     }
     
@@ -783,7 +784,9 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
         })
       };
       
-      console.log('Final submission payload:', payload);
+      if (config.features.debugMode) {
+        console.log('Final submission payload:', payload);
+      }
       
       const response = await fetch(config.api.leadSubmit, {
         method: 'POST',

@@ -25,15 +25,9 @@ export const loadJornayaScript = (): Promise<void> => {
     script.async = true;
     script.src = `//create.lidstatic.com/campaign/${complianceConfig.jornaya.campaignId}.js?snippet_version=2`;
     
-    script.onload = () => {
-      console.log('Jornaya script loaded successfully');
-      resolve();
-    };
+    script.onload = () => resolve();
     
-    script.onerror = () => {
-      console.error('Failed to load Jornaya script');
-      resolve(); // Resolve anyway to not block
-    };
+    script.onerror = () => resolve();
     
     document.body.appendChild(script);
 
@@ -51,20 +45,16 @@ export const loadJornayaScript = (): Promise<void> => {
 export const loadTrustedFormScript = (): Promise<void> => {
   return new Promise((resolve) => {
     if (!complianceConfig.trustedForm.enabled) {
-      console.log('TrustedForm disabled in config');
       resolve();
       return;
     }
 
     // Check if script already exists
     if (document.getElementById('trustedform_script')) {
-      console.log('TrustedForm script already loaded');
       resolve();
       return;
     }
 
-    console.log('Starting TrustedForm script load...');
-    
     // Use TrustedForm's official implementation
     const tf = document.createElement('script');
     tf.id = 'trustedform_script';
@@ -79,7 +69,6 @@ export const loadTrustedFormScript = (): Promise<void> => {
       new Date().getTime() + Math.random();
     
     tf.onload = () => {
-      console.log('TrustedForm script loaded successfully');
       
       // Add the noscript fallback
       const noscript = document.createElement('noscript');
@@ -91,10 +80,7 @@ export const loadTrustedFormScript = (): Promise<void> => {
       resolve();
     };
     
-    tf.onerror = () => {
-      console.error('Failed to load TrustedForm script');
-      resolve();
-    };
+    tf.onerror = () => resolve();
     
     // Insert as per their instructions
     const s = document.getElementsByTagName('script')[0];
@@ -131,32 +117,13 @@ export const loadTrustedFormScriptAlternative = (): Promise<void> => {
     
     console.log('TrustedForm script added to page');
   });
-};
 
 /**
  * Capture TrustedForm Certificate URL
  */
-export const captureTrustedFormCert = (): string | null => {
-  if (!complianceConfig.trustedForm.enabled) {
     console.log('TrustedForm disabled, skipping cert capture');
     return null;
-  }
-  
-  const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
-  
-  // TrustedForm creates the field by NAME, not ID
-  const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
-  
-  if (certField && certField.value) {
-    console.log('TrustedForm certificate captured:', certField.value);
-    return certField.value;
-  }
-  
-  console.log('TrustedForm certificate not found in field:', fieldName);
-  console.log('Field element:', certField);
-  console.log('Field value:', certField?.value);
-  
-  return null;
+  return certField?.value || null;
 };
 
 /**

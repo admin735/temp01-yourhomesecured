@@ -25,15 +25,14 @@ export interface ComplianceConfig {
 
 export const complianceConfig: ComplianceConfig = {
   jornaya: {
-    enabled: true, // TOGGLE THIS TO true TO ENABLE JORNAYA
-    campaignId: '01e968fa-b76f-896b-a9b7-5c3e7c989959', // Replace with client's campaign ID
-    accountId: '56941368-A54E-6F88-D644-183D3C1808A1', // Replace with client's account ID
+    enabled: true,
+    campaignId: '', // Empty for framework - will be filled by client
+    accountId: '',  // Empty for framework - will be filled by client
     fieldName: 'universal_leadid' // Database field name for LeadiD
   },
-    trustedForm: {
-    enabled: true,  // Turn this ON
+  trustedForm: {
+    enabled: true,
     fieldName: 'xxTrustedFormCertUrl', // Standard field name
-    provideReferrer: true, // Include referrer information
     invertFieldSensitivity: false // Standard sensitivity handling
   }
 };
