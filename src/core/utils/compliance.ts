@@ -102,6 +102,8 @@ export const loadTrustedFormScript = (): Promise<void> => {
   });
 };
 
+export const loadTrustedFormScriptAlternative = (): Promise<void> => {
+  return new Promise((resolve) => {
     // Create the TrustedForm script element directly
     const script = document.createElement('script');
     script.id = 'TrustedFormScript';
@@ -142,24 +144,17 @@ export const captureTrustedFormCert = (): string | null => {
   
   const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
   
-  // Look for the field by name (TrustedForm creates it this way)
+  // TrustedForm creates the field by NAME, not ID
   const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
   
-  if (certField) {
-    // Field exists, check if it has a value
-    if (certField.value && certField.value.length > 0) {
-      console.log('TrustedForm certificate captured:', certField.value);
-      return certField.value;
-    } else {
-      console.log('TrustedForm field exists but no value yet');
-      // Check if TrustedForm object exists on window
-      if ((window as any).TrustedForm) {
-        console.log('TrustedForm object exists on window');
-      }
-    }
-  } else {
-    console.log('TrustedForm field not found');
+  if (certField && certField.value) {
+    console.log('TrustedForm certificate captured:', certField.value);
+    return certField.value;
   }
+  
+  console.log('TrustedForm certificate not found in field:', fieldName);
+  console.log('Field element:', certField);
+  console.log('Field value:', certField?.value);
   
   return null;
 };
