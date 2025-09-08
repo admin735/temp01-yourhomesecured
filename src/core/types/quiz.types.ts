@@ -54,15 +54,18 @@ export interface SessionData {
 
 // Add compliance types
 export interface ComplianceData {
+  // Jornaya fields
   leadid_token?: string;
   leadid_timestamp?: string;
+  
+  // TrustedForm fields
   trusted_form_cert?: string;
   trusted_form_timestamp?: string;
-  tcpa_version?: string;
-  trusted_form_fingerprint?: string;
-  trusted_form_ping_url?: string;
+  
+  // Shared fields
   page_url?: string;
   consent_language?: string;
+  tcpa_version?: string;
 }
 
 export interface ComplianceState {
