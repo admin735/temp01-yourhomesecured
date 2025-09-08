@@ -15,7 +15,6 @@ import {
   loadTrustedFormScript, 
   captureTrustedFormCert
 } from '../utils/compliance';
-import { storeComplianceData } from '../utils/session';
 
 
 interface EmailValidationState {
