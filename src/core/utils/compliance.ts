@@ -46,22 +46,61 @@ export const loadJornayaScript = (): Promise<void> => {
 
 /**
  * TrustedForm Script Loader
- * Loads the universal TrustedForm script (no account ID needed!)
+ * Uses TrustedForm's official implementation with proper URL format
  */
 export const loadTrustedFormScript = (): Promise<void> => {
   return new Promise((resolve) => {
     if (!complianceConfig.trustedForm.enabled) {
+      console.log('TrustedForm disabled in config');
       resolve();
       return;
     }
 
     // Check if script already exists
-    if (document.getElementById('TrustedFormScript')) {
+    if (document.getElementById('trustedform_script')) {
+      console.log('TrustedForm script already loaded');
       resolve();
       return;
     }
 
-    console.log('Loading TrustedForm script...');
+    console.log('Starting TrustedForm script load...');
+    
+    // Use TrustedForm's official implementation
+    const tf = document.createElement('script');
+    tf.id = 'trustedform_script';
+    tf.type = 'text/javascript';
+    tf.async = true;
+    
+    // Use their exact URL format with timestamp and random number
+    tf.src = ("https:" == document.location.protocol ? 'https' : 'http') +
+      '://api.trustedform.com/trustedform.js?field=' + 
+      (complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl') +
+      '&use_tagged_consent=true&l=' +
+      new Date().getTime() + Math.random();
+    
+    tf.onload = () => {
+      console.log('TrustedForm script loaded successfully');
+      
+      // Add the noscript fallback
+      const noscript = document.createElement('noscript');
+      const img = document.createElement('img');
+      img.src = 'https://api.trustedform.com/ns.gif';
+      noscript.appendChild(img);
+      document.body.appendChild(noscript);
+      
+      resolve();
+    };
+    
+    tf.onerror = () => {
+      console.error('Failed to load TrustedForm script');
+      resolve();
+    };
+    
+    // Insert as per their instructions
+    const s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(tf, s);
+  });
+};
 
     // Create the TrustedForm script element directly
     const script = document.createElement('script');
@@ -103,17 +142,24 @@ export const captureTrustedFormCert = (): string | null => {
   
   const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
   
-  // TrustedForm creates the field by NAME, not ID
+  // Look for the field by name (TrustedForm creates it this way)
   const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
   
-  if (certField && certField.value) {
-    console.log('TrustedForm certificate captured:', certField.value);
-    return certField.value;
+  if (certField) {
+    // Field exists, check if it has a value
+    if (certField.value && certField.value.length > 0) {
+      console.log('TrustedForm certificate captured:', certField.value);
+      return certField.value;
+    } else {
+      console.log('TrustedForm field exists but no value yet');
+      // Check if TrustedForm object exists on window
+      if ((window as any).TrustedForm) {
+        console.log('TrustedForm object exists on window');
+      }
+    }
+  } else {
+    console.log('TrustedForm field not found');
   }
-  
-  console.log('TrustedForm certificate not found in field:', fieldName);
-  console.log('Field element:', certField);
-  console.log('Field value:', certField?.value);
   
   return null;
 };

@@ -206,7 +206,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     console.log('TrustedForm script loaded, starting certificate capture');
     
     let attempts = 0;
-    const maxAttempts = 20; // 10 seconds with 500ms intervals
+    const maxAttempts = 30; // Increase to 15 seconds
     
     const checkForCertificate = () => {
       const certUrl = captureTrustedFormCert();
@@ -234,15 +234,15 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       
       attempts++;
       if (attempts < maxAttempts) {
-        console.log(`TrustedForm certificate not found after ${attempts} attempts`);
+        console.log(`Attempt ${attempts}: Certificate not ready yet`);
         setTimeout(checkForCertificate, 500);
       } else {
         console.warn('⚠️ TrustedForm certificate not found after maximum attempts');
       }
     };
     
-    // Wait 2 seconds after script loads before checking (TrustedForm needs more time to initialize)
-    setTimeout(checkForCertificate, 500);
+    // Wait 3 seconds before first check (TrustedForm needs time to generate cert)
+    setTimeout(checkForCertificate, 3000);
   };
 
   // After qualifying questions, before contact
