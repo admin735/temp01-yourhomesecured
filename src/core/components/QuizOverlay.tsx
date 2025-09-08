@@ -13,8 +13,9 @@ import { storeComplianceData } from '../utils/session';
 import { 
   loadJornayaScript, 
   loadTrustedFormScript, 
-  captureTrustedFormCert 
+  captureTrustedFormCert
 } from '../utils/compliance';
+import { storeComplianceData } from '../utils/session';
 
 
 interface EmailValidationState {
@@ -94,6 +95,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     phone: '',
     email: '',
     leadid_token: '',
+    xxTrustedFormCertUrl: ''
     xxTrustedFormCertUrl: ''
   });
   
