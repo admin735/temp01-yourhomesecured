@@ -96,21 +96,24 @@ export const loadTrustedFormScript = (): Promise<void> => {
  * Capture TrustedForm Certificate URL
  */
 export const captureTrustedFormCert = (): string | null => {
-  if (!complianceConfig.trustedForm.enabled) return null;
+  if (!complianceConfig.trustedForm.enabled) {
+    console.log('TrustedForm disabled, skipping cert capture');
+    return null;
+  }
   
   const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
   
-  // Look for the field by name first
+  // TrustedForm creates the field by NAME, not ID
   const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
+  
   if (certField && certField.value) {
+    console.log('TrustedForm certificate captured:', certField.value);
     return certField.value;
   }
   
-  // Fallback: look for any field with the standard name pattern
-  const fallbackField = document.querySelector('input[name^="xxTrustedFormCertUrl"]') as HTMLInputElement;
-  if (fallbackField && fallbackField.value) {
-    return fallbackField.value;
-  }
+  console.log('TrustedForm certificate not found in field:', fieldName);
+  console.log('Field element:', certField);
+  console.log('Field value:', certField?.value);
   
   return null;
 };

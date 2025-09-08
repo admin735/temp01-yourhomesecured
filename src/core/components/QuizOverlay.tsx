@@ -242,7 +242,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     };
     
     // Wait 2 seconds after script loads before checking (TrustedForm needs more time to initialize)
-    setTimeout(checkForCertificate, 2000);
+    setTimeout(checkForCertificate, 500);
   };
 
   // After qualifying questions, before contact
