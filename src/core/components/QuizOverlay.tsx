@@ -103,6 +103,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     return cleaned.length === 10 && phoneValidationState.status === null;
   };
   
+}
 // Email autofill detection with proper dependencies
   useEffect(() => {
     if (currentStep === steps.length - 1) {
@@ -305,7 +306,11 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   };
 
-  const handleInputChange = async (field: string, value: string) => {
+
+        )
+      }
+    }
+  }  const handleInputChange = async (field: string, value: string) => {
     // Phone formatting
     if (field === 'phone') {
       const cleaned = value.replace(/\D/g, '');
