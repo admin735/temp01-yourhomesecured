@@ -114,11 +114,21 @@ export const getFinalSubmissionPayload = () => {
       ip_address: session.ip_address
     },
     
-    // Add compliance data if present
+    // Add ALL compliance data if present
     ...(session.compliance && {
-      leadid_token: session.compliance.leadid_token,
-      leadid_timestamp: session.compliance.leadid_timestamp,
-      page_url: session.compliance.page_url,
+      // Jornaya data
+      ...(session.compliance.leadid_token && {
+        leadid_token: session.compliance.leadid_token,
+        leadid_timestamp: session.compliance.leadid_timestamp,
+      }),
+      // TrustedForm data
+      ...(session.compliance.trusted_form_cert && {
+        xxTrustedFormCertUrl: session.compliance.trusted_form_cert,
+      }),
+      // Page URL (common to both)
+      ...(session.compliance.page_url && {
+        page_url: session.compliance.page_url,
+      })
     })
   };
   
