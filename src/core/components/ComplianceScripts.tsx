@@ -6,14 +6,21 @@ export const ComplianceScripts: React.FC = () => {
   useEffect(() => {
     // Load scripts on component mount
     const loadScripts = async () => {
+      console.log('Initializing compliance scripts...');
+      
+      // Load Jornaya if enabled
       if (complianceConfig.jornaya.enabled) {
+        console.log('Loading Jornaya script...');
         await loadJornayaScript();
       }
       
-      // Load TrustedForm script
+      // Load TrustedForm if enabled
       if (complianceConfig.trustedForm.enabled) {
+        console.log('Loading TrustedForm script...');
         await loadTrustedFormScript();
       }
+      
+      console.log('Compliance scripts initialization complete');
     };
 
     loadScripts();
