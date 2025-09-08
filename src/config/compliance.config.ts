@@ -14,6 +14,9 @@ export interface ComplianceConfig {
   };
   trustedForm: {
     enabled: boolean;
+    fieldName?: string;
+    provideReferrer?: boolean;
+    invertFieldSensitivity?: boolean;
     accountId?: string;
     pingUrl?: string;
     certificateUrl?: string;
