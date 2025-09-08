@@ -128,32 +128,35 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
       const loadComplianceScripts = async () => {
         const promises = [];
         
-        // Load Jornaya if enabled
-        if (complianceConfig.jornaya.enabled) {
-          console.log('✅ Jornaya condition met, loading...');
-          promises.push(loadJornayaScript());
-        }
-        
+        // Load TrustedForm if enabled
+        if (complianceConfig.trustedForm.enabled) {
+          console.log('🔍 About to check TrustedForm condition...');
+          console.log('✅ TrustedForm enabled check:', complianceConfig.trustedForm.enabled);
+          console.log('✅ TrustedForm condition met! Starting load...');
+          console.log('🔍 About to call loadTrustedFormScript()...');
           promises.push(loadTrustedFormScript());
         }
         
         // Wait for all scripts to load
-        await Promise.all(promises);
-        console.log('All compliance scripts loaded');
-        
-        // Start capture attempts for both services
-        if (complianceConfig.jornaya.enabled) {
-          startJornayaCapture();
-        }
-        
-        if (complianceConfig.trustedForm.enabled) {
-          startTrustedFormCapture();
+        try {
+          await Promise.all(promises);
+          console.log('All compliance scripts loaded');
+          
+          // Start capture attempts for both services
+          if (complianceConfig.jornaya.enabled) {
+            startJornayaCapture();
+          }
+          
+          if (complianceConfig.trustedForm.enabled) {
+            startTrustedFormCapture();
+          }
+        } catch (error) {
+          console.error('Error loading compliance scripts:', error);
         }
       };
       
-      loadComplianceScripts().catch(error => {
-        console.error('Error loading compliance scripts:', error);
-      });
+      // Call the async function
+      loadComplianceScripts();
     }
   }, [currentStep, steps.length]);
   
