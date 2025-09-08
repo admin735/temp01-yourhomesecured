@@ -13,9 +13,8 @@ import { storeComplianceData } from '../utils/session';
 import { 
   loadJornayaScript, 
   loadTrustedFormScript, 
-  captureTrustedFormCert
+  captureTrustedFormCert 
 } from '../utils/compliance';
-import { storeComplianceData } from '../utils/session';
 
 
 interface EmailValidationState {
@@ -96,7 +95,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     email: '',
     leadid_token: '',
     xxTrustedFormCertUrl: ''
-    xxTrustedFormCertUrl: ''
   });
   
   // Helper function to detect autofilled phone
@@ -105,8 +103,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     return cleaned.length === 10 && phoneValidationState.status === null;
   };
   
-}
-// Email autofill detection with proper dependencies
+  // Email autofill detection with proper dependencies
   useEffect(() => {
     if (currentStep === steps.length - 1) {
       const timer = setTimeout(() => {
@@ -162,86 +159,6 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   }, [currentStep, steps.length]);
   
-  // Helper function for Jornaya capture
-  const startJornayaCapture = () => {
-    console.log('Jornaya script loaded, starting LeadiD capture');
-    
-    let attempts = 0;
-    const maxAttempts = 30; // 15 seconds with 500ms intervals
-    
-    const checkForLeadiD = () => {
-      const leadidInput = document.getElementById('leadid_token') as HTMLInputElement;
-      
-      if (leadidInput && leadidInput.value && leadidInput.value.length > 0) {
-        console.log('LeadiD captured:', leadidInput.value);
-        setQuizData(prev => ({
-          ...prev,
-          leadid_token: leadidInput.value
-        }));
-        storeFormField('leadid_token', leadidInput.value);
-        storeComplianceData({ 
-          leadid_token: leadidInput.value,
-          leadid_timestamp: new Date().toISOString()
-        });
-        return true; // Found it
-      }
-      
-      attempts++;
-      if (attempts < maxAttempts) {
-        setTimeout(checkForLeadiD, 500);
-      } else {
-        console.warn('LeadiD not found after maximum attempts');
-      }
-    };
-    
-    // Wait 1 second after script loads before checking
-    setTimeout(checkForLeadiD, 1000);
-  };
-  
-  // Helper function for TrustedForm capture
-  const startTrustedFormCapture = () => {
-    console.log('TrustedForm script loaded, starting certificate capture');
-    
-    let attempts = 0;
-    const maxAttempts = 20; // 10 seconds with 500ms intervals
-    
-    const checkForCertificate = () => {
-      const certUrl = captureTrustedFormCert();
-      
-      if (certUrl) {
-        console.log('✅ TrustedForm certificate captured:', certUrl);
-        
-        // Store in quiz data for form submission
-        setQuizData(prev => ({
-          ...prev,
-          xxTrustedFormCertUrl: certUrl
-        }));
-        
-        // Store in form fields
-        storeFormField('xxTrustedFormCertUrl', certUrl);
-        
-        // Store in compliance data
-        storeComplianceData({ 
-          trusted_form_cert: certUrl,
-          page_url: window.location.href
-        });
-        
-        return true; // Found it
-      }
-      
-      attempts++;
-      if (attempts < maxAttempts) {
-        console.log(`TrustedForm certificate not found after ${attempts} attempts`);
-        setTimeout(checkForCertificate, 500);
-      } else {
-        console.warn('⚠️ TrustedForm certificate not found after maximum attempts');
-      }
-    };
-    
-    // Wait 2 seconds after script loads before checking (TrustedForm needs more time to initialize)
-    setTimeout(checkForCertificate, 2000);
-  };
-
   // Helper function for Jornaya capture
   const startJornayaCapture = () => {
     console.log('Jornaya script loaded, starting LeadiD capture');
@@ -391,11 +308,7 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
     }
   };
 
-
-        )
-      }
-    }
-  }  const handleInputChange = async (field: string, value: string) => {
+  const handleInputChange = async (field: string, value: string) => {
     // Phone formatting
     if (field === 'phone') {
       const cleaned = value.replace(/\D/g, '');
