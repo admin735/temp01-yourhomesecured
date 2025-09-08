@@ -56,8 +56,9 @@ export interface SessionData {
 export interface ComplianceData {
   leadid_token?: string;
   leadid_timestamp?: string;
-  tcpa_version?: string;
   trusted_form_cert?: string;
+  trusted_form_timestamp?: string;
+  tcpa_version?: string;
   trusted_form_fingerprint?: string;
   trusted_form_ping_url?: string;
   page_url?: string;

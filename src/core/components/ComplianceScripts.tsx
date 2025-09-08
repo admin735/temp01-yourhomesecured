@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { loadJornayaScript } from '../utils/compliance';
+import { loadJornayaScript, loadTrustedFormScript } from '../utils/compliance';
 import { complianceConfig } from '../../config/compliance.config';
 
 export const ComplianceScripts: React.FC = () => {
@@ -10,9 +10,9 @@ export const ComplianceScripts: React.FC = () => {
         await loadJornayaScript();
       }
       
-      // Future: Load TrustedForm script
+      // Load TrustedForm script
       if (complianceConfig.trustedForm.enabled) {
-        // Load TrustedForm
+        await loadTrustedFormScript();
       }
     };
 

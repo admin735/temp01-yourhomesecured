@@ -8,6 +8,7 @@ import { FAQ } from '../components/FAQ';
 import { FinalCTA } from '../components/FinalCTA';
 import { Footer } from '../components/Footer';
 import { QuizOverlay } from '../components/QuizOverlay';
+import { ComplianceScripts } from '../components/ComplianceScripts';
 
 export const HomeLayout: React.FC = () => {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -22,6 +23,7 @@ export const HomeLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <ComplianceScripts />
       <Hero onQuizStart={handleQuizStart} />
       <MovingBanner />
       <ValuePropositions />

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
   loadJornayaScript, 
+  loadTrustedFormScript,
   captureLeadiD, 
+  captureTrustedFormCert,
   getComplianceData,
   isComplianceReady,
   cleanupComplianceScripts 
@@ -14,7 +16,9 @@ export const useCompliance = () => {
     jornayaLoaded: false,
     jornayaReady: false,
     leadIdCaptured: false,
-    leadId: null
+    leadId: null,
+    trustedFormLoaded: false,
+    trustedFormCert: null
   });
 
   // Initialize compliance scripts
@@ -46,6 +50,26 @@ export const useCompliance = () => {
           // Clear interval after 10 seconds to prevent memory leaks
           setTimeout(() => clearInterval(pollInterval), 10000);
         }
+        
+        if (complianceConfig.trustedForm.enabled) {
+          await loadTrustedFormScript();
+          setState(prev => ({ ...prev, trustedFormLoaded: true }));
+          
+          // Start polling for TrustedForm certificate
+          const tfPollInterval = setInterval(() => {
+            const certUrl = captureTrustedFormCert();
+            if (certUrl) {
+              setState(prev => ({
+                ...prev,
+                trustedFormCert: certUrl
+              }));
+              clearInterval(tfPollInterval);
+            }
+          }, 500);
+          
+          // Clear interval after 10 seconds to prevent memory leaks
+          setTimeout(() => clearInterval(tfPollInterval), 10000);
+        }
       } catch (error) {
         console.error('Failed to initialize compliance:', error);
       }
@@ -55,7 +79,7 @@ export const useCompliance = () => {
 
     // Cleanup on unmount
     return () => {
-      if (complianceConfig.jornaya.enabled) {
+      if (complianceConfig.jornaya.enabled || complianceConfig.trustedForm.enabled) {
         cleanupComplianceScripts();
       }
     };

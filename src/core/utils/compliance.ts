@@ -45,6 +45,85 @@ export const loadJornayaScript = (): Promise<void> => {
 };
 
 /**
+ * TrustedForm Script Loader
+ * Loads the universal TrustedForm script (no account ID needed!)
+ */
+export const loadTrustedFormScript = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (!complianceConfig.trustedForm.enabled) {
+      resolve();
+      return;
+    }
+
+    // Check if script already exists
+    if (document.getElementById('TrustedFormScript')) {
+      resolve();
+      return;
+    }
+
+    console.log('Loading TrustedForm script...');
+
+    // TrustedForm Universal Script - works without account ID
+    const scriptContent = `
+(function() {
+  var field = '${complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl'}';
+  var provideReferrer = ${complianceConfig.trustedForm.provideReferrer || true};
+  var invertFieldSensitivity = ${complianceConfig.trustedForm.invertFieldSensitivity || false};
+  
+  var tf = document.createElement('script');
+  tf.type = 'text/javascript';
+  tf.async = true;
+  tf.src = 'https://api.trustedform.com/trustedform.js?provide_referrer=' + 
+           provideReferrer + '&field=' + encodeURIComponent(field) + 
+           '&invert_field_sensitivity=' + invertFieldSensitivity;
+  
+  var s = document.getElementsByTagName('script')[0];
+  s.parentNode.insertBefore(tf, s);
+})();
+`;
+
+    // Create script element
+    const script = document.createElement('script');
+    script.id = 'TrustedFormScript';
+    script.type = 'text/javascript';
+    script.innerHTML = scriptContent;
+    
+    // Add to page
+    document.body.appendChild(script);
+    
+    console.log('TrustedForm script added to page');
+    
+    // Wait a moment for script to initialize
+    setTimeout(() => {
+      resolve();
+    }, 1000);
+  });
+};
+
+/**
+ * Capture TrustedForm Certificate URL
+ */
+export const captureTrustedFormCert = (): string | null => {
+  if (!complianceConfig.trustedForm.enabled) return null;
+  
+  const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
+  
+  // Look for the field by name first
+  const certField = document.querySelector(`input[name="${fieldName}"]`) as HTMLInputElement;
+  if (certField && certField.value) {
+    return certField.value;
+  }
+  
+  // Fallback: look for any field with the standard name pattern
+  const fallbackField = document.querySelector('input[name^="xxTrustedFormCertUrl"]') as HTMLInputElement;
+  if (fallbackField && fallbackField.value) {
+    return fallbackField.value;
+  }
+  
+  return null;
+};
+
+/**
  * Capture LeadiD from the hidden field
  */
 export const captureLeadiD = (): string | null => {
@@ -69,9 +148,14 @@ export const getComplianceData = (): ComplianceData => {
     }
   }
   
-  // Future: Add TrustedForm data capture here
+  // TrustedForm Certificate
   if (complianceConfig.trustedForm.enabled) {
-    // TrustedForm implementation
+    const certUrl = captureTrustedFormCert();
+    if (certUrl) {
+      data.trusted_form_cert = certUrl;
+      data.trusted_form_timestamp = new Date().toISOString();
+      data.page_url = window.location.href;
+    }
   }
   
   return data;
@@ -85,14 +169,24 @@ export const isComplianceReady = (): boolean => {
     return true; // No compliance needed, so we're "ready"
   }
   
+  let ready = true;
+  
   if (complianceConfig.jornaya.enabled) {
     const leadId = captureLeadiD();
-    if (!leadId) return false;
+    if (!leadId) {
+      ready = false;
+    }
   }
   
-  // Future: Check TrustedForm readiness
+  // Check TrustedForm readiness
+  if (complianceConfig.trustedForm.enabled) {
+    const certUrl = captureTrustedFormCert();
+    if (!certUrl) {
+      ready = false;
+    }
+  }
   
-  return true;
+  return ready;
 };
 
 /**
@@ -105,4 +199,12 @@ export const cleanupComplianceScripts = (): void => {
   
   if (jornayaScript) jornayaScript.remove();
   if (jornayaCampaignScript) jornayaCampaignScript.remove();
+  
+  // Remove TrustedForm script
+  const trustedFormScript = document.getElementById('TrustedFormScript');
+  if (trustedFormScript) trustedFormScript.remove();
+
+  // Remove any TrustedForm hidden fields
+  const trustedFormFields = document.querySelectorAll('input[name^="xxTrustedFormCertUrl"]');
+  trustedFormFields.forEach(field => field.remove());
 };

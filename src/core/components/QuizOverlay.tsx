@@ -1002,6 +1002,16 @@ export const QuizOverlay: React.FC<QuizOverlayProps> = ({ isOpen, onClose }) => 
                     />
                   )}
                   
+                  {/* TrustedForm Certificate hidden input */}
+                  {complianceConfig.trustedForm.enabled && (
+                    <input
+                      name={complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl'}
+                      type="hidden"
+                      value=""
+                      style={{ display: 'none' }}
+                    />
+                  )}
+                  
                   <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer border border-gray-200 hover:border-blue-300">
                     <input
                       type="checkbox"
