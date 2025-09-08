@@ -27,11 +27,10 @@ export const complianceConfig: ComplianceConfig = {
     accountId: '56941368-A54E-6F88-D644-183D3C1808A1', // Replace with client's account ID
     fieldName: 'universal_leadid' // Database field name for LeadiD
   },
-  trustedForm: {
+    trustedForm: {
     enabled: true,  // Turn this ON
-    accountId: 'YOUR_ACCOUNT_ID_HERE',  // Add your real account ID
-    sandbox: true,  // Keep in sandbox for testing
-    fieldName: 'xxTrustedFormCertUrl',
-    invertFieldSensitivity: false
+    fieldName: 'xxTrustedFormCertUrl', // Standard field name
+    provideReferrer: true, // Include referrer information
+    invertFieldSensitivity: false // Standard sensitivity handling
   }
 };
