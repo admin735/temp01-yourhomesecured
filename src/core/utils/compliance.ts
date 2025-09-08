@@ -63,40 +63,32 @@ export const loadTrustedFormScript = (): Promise<void> => {
 
     console.log('Loading TrustedForm script...');
 
-    // TrustedForm Universal Script - works without account ID
-    const scriptContent = `
-(function() {
-  var field = '${complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl'}';
-  var provideReferrer = ${complianceConfig.trustedForm.provideReferrer || true};
-  var invertFieldSensitivity = ${complianceConfig.trustedForm.invertFieldSensitivity || false};
-  
-  var tf = document.createElement('script');
-  tf.type = 'text/javascript';
-  tf.async = true;
-  tf.src = 'https://api.trustedform.com/trustedform.js?provide_referrer=' + 
-           provideReferrer + '&field=' + encodeURIComponent(field) + 
-           '&invert_field_sensitivity=' + invertFieldSensitivity;
-  
-  var s = document.getElementsByTagName('script')[0];
-  s.parentNode.insertBefore(tf, s);
-})();
-`;
-
-    // Create script element
+    // Create the TrustedForm script element directly
     const script = document.createElement('script');
     script.id = 'TrustedFormScript';
     script.type = 'text/javascript';
-    script.innerHTML = scriptContent;
+    script.async = true;
     
-    // Add to page
-    document.body.appendChild(script);
+    const fieldName = complianceConfig.trustedForm.fieldName || 'xxTrustedFormCertUrl';
+    const provideReferrer = complianceConfig.trustedForm.provideReferrer || true;
+    const invertFieldSensitivity = complianceConfig.trustedForm.invertFieldSensitivity || false;
+    
+    script.src = `https://api.trustedform.com/trustedform.js?provide_referrer=${provideReferrer}&field=${encodeURIComponent(fieldName)}&invert_field_sensitivity=${invertFieldSensitivity}`;
+    
+    script.onload = () => {
+      console.log('TrustedForm script loaded from CDN');
+      resolve();
+    };
+    
+    script.onerror = () => {
+      console.error('Failed to load TrustedForm script');
+      resolve();
+    };
+    
+    // Add to head for better form detection
+    document.head.appendChild(script);
     
     console.log('TrustedForm script added to page');
-    
-    // Wait a moment for script to initialize
-    setTimeout(() => {
-      resolve();
-    }, 1000);
   });
 };
 
